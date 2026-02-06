@@ -56,10 +56,9 @@ func main() {
 	r.GET("/health", healthChecker.Health)
 	r.GET("/ready", healthChecker.Ready)
 
-	// API routes (admin only)
+	// API routes (admin only - role check should be done in handler)
 	api := r.Group("/api/diagnostics/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))
-	api.Use(auth.RoleMiddleware("admin")) // Only admins can access diagnostics
 	{
 		api.GET("/summary", diagnosticsHandler.GetSummary)
 		api.GET("/services", diagnosticsHandler.GetServices)
