@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 -- Diagnostics schema for platform-wide debugging and monitoring
 
 CREATE SCHEMA IF NOT EXISTS diagnostics;
@@ -106,3 +108,9 @@ CREATE TABLE IF NOT EXISTS diagnostics.api_metrics_minute (
 CREATE INDEX IF NOT EXISTS idx_metrics_minute_ts ON diagnostics.api_metrics_minute(minute_ts);
 CREATE INDEX IF NOT EXISTS idx_metrics_service ON diagnostics.api_metrics_minute(service_name);
 CREATE INDEX IF NOT EXISTS idx_metrics_route ON diagnostics.api_metrics_minute(route);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP SCHEMA IF EXISTS diagnostics CASCADE;
+-- +goose StatementEnd
