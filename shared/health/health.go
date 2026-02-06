@@ -1,7 +1,7 @@
 package health
 
 import (
-	"database/sql"
+	"context"
 	"net/http"
 	"time"
 

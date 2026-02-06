@@ -33,7 +33,6 @@ func RequestLogging(logger *observability.Logger) gin.HandlerFunc {
 			}
 		}
 
-		start := time.Now()
 		reqLogger.LogStart()
 
 		// Process request
