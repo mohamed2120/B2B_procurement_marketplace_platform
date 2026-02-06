@@ -30,7 +30,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
 
   opensearch:
     image: opensearchproject/opensearch:2.11.0
@@ -68,7 +67,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-      start_period: 30s
 
   # Backend Services
   identity-service:
@@ -102,7 +100,6 @@ services:
       retries: 3
       start_period: 30s
       start_period: 30s
-      start_period: 30s
 
   company-service:
     build:
@@ -134,7 +131,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   catalog-service:
     build:
@@ -195,7 +191,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   marketplace-service:
     build:
@@ -262,7 +257,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   logistics-service:
     build:
@@ -326,7 +320,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   notification-service:
     build:
@@ -384,7 +377,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   virtual-warehouse-service:
     build:
@@ -437,7 +429,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   # Frontend
   frontend:

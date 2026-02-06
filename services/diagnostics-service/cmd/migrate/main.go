@@ -13,13 +13,29 @@ import (
 func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
+		dbHost := os.Getenv("DB_HOST")
+		if dbHost == "" {
+			dbHost = "localhost"
+		}
+		dbPort := os.Getenv("DB_PORT")
+		if dbPort == "" {
+			dbPort = "5432"
+		}
+		dbUser := os.Getenv("DB_USER")
+		if dbUser == "" {
+			dbUser = "b2b_user"
+		}
+		dbPassword := os.Getenv("DB_PASSWORD")
+		if dbPassword == "" {
+			dbPassword = "b2b_password"
+		}
+		dbName := os.Getenv("DB_NAME")
+		if dbName == "" {
+			dbName = "b2b_platform"
+		}
 		dsn = fmt.Sprintf(
 			"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-			os.Getenv("DB_HOST"),
-			os.Getenv("DB_PORT"),
-			os.Getenv("DB_USER"),
-			os.Getenv("DB_PASSWORD"),
-			os.Getenv("DB_NAME"),
+			dbHost, dbPort, dbUser, dbPassword, dbName,
 		)
 	}
 
