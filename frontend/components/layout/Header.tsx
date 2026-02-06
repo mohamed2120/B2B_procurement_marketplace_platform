@@ -6,17 +6,23 @@ import { getUser, logout } from '@/lib/auth';
 import { useState, useEffect } from 'react';
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const [user, setUser] = useState(getUser());
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setUser(getUser());
   }, []);
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    if (mounted) {
+      router.push('/login');
+    } else {
+      window.location.href = '/login';
+    }
   };
 
   return (

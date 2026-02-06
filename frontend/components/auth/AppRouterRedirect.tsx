@@ -1,14 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { isAuthenticated, getUser, hasRole } from '@/lib/auth';
 
 export default function AppRouterRedirect() {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
     if (!isAuthenticated()) {
       router.push('/login');
       return;
@@ -29,7 +36,7 @@ export default function AppRouterRedirect() {
         router.push('/app/my-plan');
       }
     }
-  }, [router, pathname]);
+  }, [mounted, router, pathname]);
 
   return null;
 }

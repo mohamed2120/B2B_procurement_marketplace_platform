@@ -1,8 +1,14 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import PortalLayout from '@/components/layout/PortalLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import AppRouterRedirect from '@/components/auth/AppRouterRedirect';
+
+// Dynamically import AppRouterRedirect to ensure it only loads client-side after hydration
+const AppRouterRedirect = dynamic(
+  () => import('@/components/auth/AppRouterRedirect'),
+  { ssr: false }
+);
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
