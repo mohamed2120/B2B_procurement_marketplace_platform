@@ -19,16 +19,22 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Suppress router mounting errors (known Next.js dev mode issue)
-    if (error.message?.includes('expected app router to be mounted')) {
+    // Suppress router mounting errors (known Next.js dev mode issue with HotReload)
+    const errorMsg = error?.message || '';
+    if (errorMsg.includes('expected app router to be mounted') || 
+        errorMsg.includes('invariant expected app router')) {
+      // This is a Next.js internal error during hot reload, ignore it
       return { hasError: false };
     }
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    // Suppress router mounting errors in console
-    if (error.message?.includes('expected app router to be mounted')) {
+    // Suppress router mounting errors in console (Next.js HotReload issue)
+    const errorMsg = error?.message || '';
+    if (errorMsg.includes('expected app router to be mounted') || 
+        errorMsg.includes('invariant expected app router')) {
+      // Silently ignore - this is a Next.js dev mode hot reload issue
       return;
     }
     console.error('ErrorBoundary caught an error:', error, errorInfo);
