@@ -45,8 +45,7 @@ CREATE TABLE IF NOT EXISTS billing.subscriptions (
     auto_renew BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP,
-    CONSTRAINT unique_tenant_active_subscription UNIQUE (tenant_id) WHERE status = 'active'
+    deleted_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_tenant_id ON billing.subscriptions(tenant_id);
