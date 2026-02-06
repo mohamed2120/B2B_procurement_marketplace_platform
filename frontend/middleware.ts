@@ -6,17 +6,29 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/register'];
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/how-it-works',
+    '/pricing',
+    '/contact',
+    '/terms',
+    '/privacy',
+  ];
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+
+  // Protected routes under /app
+  const isProtectedRoute = pathname.startsWith('/app');
 
   // If accessing a protected route without a token, redirect to login
-  if (!isPublicRoute && !token) {
+  if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If accessing login/register with a token, redirect to dashboard
-  if (isPublicRoute && token) {
-    return NextResponse.redirect(new URL('/', request.url));
+  // If accessing login/register with a token, redirect to app
+  if ((pathname === '/login' || pathname === '/register') && token) {
+    return NextResponse.redirect(new URL('/app', request.url));
   }
 
   return NextResponse.next();
