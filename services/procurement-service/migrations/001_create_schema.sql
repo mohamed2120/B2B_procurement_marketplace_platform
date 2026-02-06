@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS procurement.purchase_requests (
     CONSTRAINT idx_tenant_pr UNIQUE (tenant_id, pr_number)
 );
 
-CREATE INDEX idx_pr_tenant_id ON procurement.purchase_requests(tenant_id);
-CREATE INDEX idx_pr_status ON procurement.purchase_requests(status);
-CREATE INDEX idx_pr_deleted_at ON procurement.purchase_requests(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_pr_tenant_id ON procurement.purchase_requests(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_pr_status ON procurement.purchase_requests(status);
+CREATE INDEX IF NOT EXISTS idx_pr_deleted_at ON procurement.purchase_requests(deleted_at);
 
 -- PR Items table
 CREATE TABLE IF NOT EXISTS procurement.pr_items (
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS procurement.pr_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_pr_items_pr_id ON procurement.pr_items(pr_id);
-CREATE INDEX idx_pr_items_part_id ON procurement.pr_items(part_id);
+CREATE INDEX IF NOT EXISTS idx_pr_items_pr_id ON procurement.pr_items(pr_id);
+CREATE INDEX IF NOT EXISTS idx_pr_items_part_id ON procurement.pr_items(part_id);
 
 -- PR Approvals table
 CREATE TABLE IF NOT EXISTS procurement.pr_approvals (
@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS procurement.pr_approvals (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_pr_approvals_pr_id ON procurement.pr_approvals(pr_id);
-CREATE INDEX idx_pr_approvals_status ON procurement.pr_approvals(status);
+CREATE INDEX IF NOT EXISTS idx_pr_approvals_pr_id ON procurement.pr_approvals(pr_id);
+CREATE INDEX IF NOT EXISTS idx_pr_approvals_status ON procurement.pr_approvals(status);
 
 -- RFQs table
 CREATE TABLE IF NOT EXISTS procurement.rfqs (
@@ -76,9 +76,9 @@ CREATE TABLE IF NOT EXISTS procurement.rfqs (
     CONSTRAINT idx_tenant_rfq UNIQUE (tenant_id, rfq_number)
 );
 
-CREATE INDEX idx_rfqs_tenant_id ON procurement.rfqs(tenant_id);
-CREATE INDEX idx_rfqs_pr_id ON procurement.rfqs(pr_id);
-CREATE INDEX idx_rfqs_status ON procurement.rfqs(status);
+CREATE INDEX IF NOT EXISTS idx_rfqs_tenant_id ON procurement.rfqs(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_rfqs_pr_id ON procurement.rfqs(pr_id);
+CREATE INDEX IF NOT EXISTS idx_rfqs_status ON procurement.rfqs(status);
 
 -- Quotes table
 CREATE TABLE IF NOT EXISTS procurement.quotes (
@@ -98,10 +98,10 @@ CREATE TABLE IF NOT EXISTS procurement.quotes (
     CONSTRAINT idx_tenant_quote UNIQUE (tenant_id, quote_number)
 );
 
-CREATE INDEX idx_quotes_tenant_id ON procurement.quotes(tenant_id);
-CREATE INDEX idx_quotes_rfq_id ON procurement.quotes(rfq_id);
-CREATE INDEX idx_quotes_supplier_id ON procurement.quotes(supplier_id);
-CREATE INDEX idx_quotes_status ON procurement.quotes(status);
+CREATE INDEX IF NOT EXISTS idx_quotes_tenant_id ON procurement.quotes(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_quotes_rfq_id ON procurement.quotes(rfq_id);
+CREATE INDEX IF NOT EXISTS idx_quotes_supplier_id ON procurement.quotes(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_quotes_status ON procurement.quotes(status);
 
 -- Quote Items table
 CREATE TABLE IF NOT EXISTS procurement.quote_items (
@@ -117,8 +117,8 @@ CREATE TABLE IF NOT EXISTS procurement.quote_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_quote_items_quote_id ON procurement.quote_items(quote_id);
-CREATE INDEX idx_quote_items_pr_item_id ON procurement.quote_items(pr_item_id);
+CREATE INDEX IF NOT EXISTS idx_quote_items_quote_id ON procurement.quote_items(quote_id);
+CREATE INDEX IF NOT EXISTS idx_quote_items_pr_item_id ON procurement.quote_items(pr_item_id);
 
 -- Purchase Orders table
 CREATE TABLE IF NOT EXISTS procurement.purchase_orders (
@@ -138,10 +138,10 @@ CREATE TABLE IF NOT EXISTS procurement.purchase_orders (
     CONSTRAINT idx_tenant_po UNIQUE (tenant_id, po_number)
 );
 
-CREATE INDEX idx_pos_tenant_id ON procurement.purchase_orders(tenant_id);
-CREATE INDEX idx_pos_pr_id ON procurement.purchase_orders(pr_id);
-CREATE INDEX idx_pos_quote_id ON procurement.purchase_orders(quote_id);
-CREATE INDEX idx_pos_status ON procurement.purchase_orders(status);
+CREATE INDEX IF NOT EXISTS idx_pos_tenant_id ON procurement.purchase_orders(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_pos_pr_id ON procurement.purchase_orders(pr_id);
+CREATE INDEX IF NOT EXISTS idx_pos_quote_id ON procurement.purchase_orders(quote_id);
+CREATE INDEX IF NOT EXISTS idx_pos_status ON procurement.purchase_orders(status);
 
 -- PO Items table
 CREATE TABLE IF NOT EXISTS procurement.po_items (
@@ -156,5 +156,5 @@ CREATE TABLE IF NOT EXISTS procurement.po_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_po_items_po_id ON procurement.po_items(po_id);
-CREATE INDEX idx_po_items_pr_item_id ON procurement.po_items(pr_item_id);
+CREATE INDEX IF NOT EXISTS idx_po_items_po_id ON procurement.po_items(po_id);
+CREATE INDEX IF NOT EXISTS idx_po_items_pr_item_id ON procurement.po_items(pr_item_id);

@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS equipment.equipment (
     CONSTRAINT idx_tenant_eq_num UNIQUE (tenant_id, equipment_number)
 );
 
-CREATE INDEX idx_equipment_tenant_id ON equipment.equipment(tenant_id);
-CREATE INDEX idx_equipment_status ON equipment.equipment(status);
-CREATE INDEX idx_equipment_type ON equipment.equipment(type);
-CREATE INDEX idx_equipment_deleted_at ON equipment.equipment(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_equipment_tenant_id ON equipment.equipment(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment.equipment(status);
+CREATE INDEX IF NOT EXISTS idx_equipment_type ON equipment.equipment(type);
+CREATE INDEX IF NOT EXISTS idx_equipment_deleted_at ON equipment.equipment(deleted_at);
 
 -- BOM nodes table
 CREATE TABLE IF NOT EXISTS equipment.bom_nodes (
@@ -45,10 +45,10 @@ CREATE TABLE IF NOT EXISTS equipment.bom_nodes (
     FOREIGN KEY (parent_node_id) REFERENCES equipment.bom_nodes(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_bom_nodes_tenant_id ON equipment.bom_nodes(tenant_id);
-CREATE INDEX idx_bom_nodes_equipment_id ON equipment.bom_nodes(equipment_id);
-CREATE INDEX idx_bom_nodes_part_id ON equipment.bom_nodes(part_id);
-CREATE INDEX idx_bom_nodes_parent_node_id ON equipment.bom_nodes(parent_node_id);
+CREATE INDEX IF NOT EXISTS idx_bom_nodes_tenant_id ON equipment.bom_nodes(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_bom_nodes_equipment_id ON equipment.bom_nodes(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_bom_nodes_part_id ON equipment.bom_nodes(part_id);
+CREATE INDEX IF NOT EXISTS idx_bom_nodes_parent_node_id ON equipment.bom_nodes(parent_node_id);
 
 -- Compatibility mappings table
 CREATE TABLE IF NOT EXISTS equipment.compatibility_mappings (
@@ -65,6 +65,6 @@ CREATE TABLE IF NOT EXISTS equipment.compatibility_mappings (
     CONSTRAINT unique_equipment_part UNIQUE (equipment_id, part_id)
 );
 
-CREATE INDEX idx_compatibility_tenant_id ON equipment.compatibility_mappings(tenant_id);
-CREATE INDEX idx_compatibility_equipment_id ON equipment.compatibility_mappings(equipment_id);
-CREATE INDEX idx_compatibility_part_id ON equipment.compatibility_mappings(part_id);
+CREATE INDEX IF NOT EXISTS idx_compatibility_tenant_id ON equipment.compatibility_mappings(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_compatibility_equipment_id ON equipment.compatibility_mappings(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_compatibility_part_id ON equipment.compatibility_mappings(part_id);

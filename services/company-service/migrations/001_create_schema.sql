@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS company.companies (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_companies_status ON company.companies(status);
-CREATE INDEX idx_companies_subdomain ON company.companies(subdomain);
-CREATE INDEX idx_companies_deleted_at ON company.companies(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_companies_status ON company.companies(status);
+CREATE INDEX IF NOT EXISTS idx_companies_subdomain ON company.companies(subdomain);
+CREATE INDEX IF NOT EXISTS idx_companies_deleted_at ON company.companies(deleted_at);
 
 -- Company documents table
 CREATE TABLE IF NOT EXISTS company.documents (
@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS company.documents (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_documents_company_id ON company.documents(company_id);
-CREATE INDEX idx_documents_status ON company.documents(status);
+CREATE INDEX IF NOT EXISTS idx_documents_company_id ON company.documents(company_id);
+CREATE INDEX IF NOT EXISTS idx_documents_status ON company.documents(status);
 
 -- Subdomain requests table
 CREATE TABLE IF NOT EXISTS company.subdomain_requests (
@@ -65,6 +65,6 @@ CREATE TABLE IF NOT EXISTS company.subdomain_requests (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_subdomain_requests_company_id ON company.subdomain_requests(company_id);
-CREATE INDEX idx_subdomain_requests_status ON company.subdomain_requests(status);
-CREATE INDEX idx_subdomain_requests_subdomain ON company.subdomain_requests(subdomain);
+CREATE INDEX IF NOT EXISTS idx_subdomain_requests_company_id ON company.subdomain_requests(company_id);
+CREATE INDEX IF NOT EXISTS idx_subdomain_requests_status ON company.subdomain_requests(status);
+CREATE INDEX IF NOT EXISTS idx_subdomain_requests_subdomain ON company.subdomain_requests(subdomain);

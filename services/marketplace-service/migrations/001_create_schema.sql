@@ -15,10 +15,10 @@ CREATE TABLE IF NOT EXISTS marketplace.stores (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_stores_tenant_id ON marketplace.stores(tenant_id);
-CREATE INDEX idx_stores_company_id ON marketplace.stores(company_id);
-CREATE INDEX idx_stores_status ON marketplace.stores(status);
-CREATE INDEX idx_stores_deleted_at ON marketplace.stores(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_stores_tenant_id ON marketplace.stores(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_stores_company_id ON marketplace.stores(company_id);
+CREATE INDEX IF NOT EXISTS idx_stores_status ON marketplace.stores(status);
+CREATE INDEX IF NOT EXISTS idx_stores_deleted_at ON marketplace.stores(deleted_at);
 
 -- Listings table
 CREATE TABLE IF NOT EXISTS marketplace.listings (
@@ -43,13 +43,13 @@ CREATE TABLE IF NOT EXISTS marketplace.listings (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_listings_tenant_id ON marketplace.listings(tenant_id);
-CREATE INDEX idx_listings_store_id ON marketplace.listings(store_id);
-CREATE INDEX idx_listings_listing_type ON marketplace.listings(listing_type);
-CREATE INDEX idx_listings_part_id ON marketplace.listings(part_id);
-CREATE INDEX idx_listings_status ON marketplace.listings(status);
-CREATE INDEX idx_listings_is_active ON marketplace.listings(is_active);
-CREATE INDEX idx_listings_deleted_at ON marketplace.listings(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_listings_tenant_id ON marketplace.listings(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_listings_store_id ON marketplace.listings(store_id);
+CREATE INDEX IF NOT EXISTS idx_listings_listing_type ON marketplace.listings(listing_type);
+CREATE INDEX IF NOT EXISTS idx_listings_part_id ON marketplace.listings(part_id);
+CREATE INDEX IF NOT EXISTS idx_listings_status ON marketplace.listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_is_active ON marketplace.listings(is_active);
+CREATE INDEX IF NOT EXISTS idx_listings_deleted_at ON marketplace.listings(deleted_at);
 
 -- Listing media table
 CREATE TABLE IF NOT EXISTS marketplace.listing_media (
@@ -67,5 +67,5 @@ CREATE TABLE IF NOT EXISTS marketplace.listing_media (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_listing_media_listing_id ON marketplace.listing_media(listing_id);
-CREATE INDEX idx_listing_media_is_primary ON marketplace.listing_media(is_primary);
+CREATE INDEX IF NOT EXISTS idx_listing_media_listing_id ON marketplace.listing_media(listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_media_is_primary ON marketplace.listing_media(is_primary);

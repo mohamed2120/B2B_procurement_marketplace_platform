@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS catalog.manufacturers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_manufacturers_name ON catalog.manufacturers(name);
-CREATE INDEX idx_manufacturers_code ON catalog.manufacturers(code);
+CREATE INDEX IF NOT EXISTS idx_manufacturers_name ON catalog.manufacturers(name);
+CREATE INDEX IF NOT EXISTS idx_manufacturers_code ON catalog.manufacturers(code);
 
 -- Categories table
 CREATE TABLE IF NOT EXISTS catalog.categories (
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS catalog.categories (
     FOREIGN KEY (parent_id) REFERENCES catalog.categories(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_categories_name ON catalog.categories(name);
-CREATE INDEX idx_categories_code ON catalog.categories(code);
-CREATE INDEX idx_categories_parent_id ON catalog.categories(parent_id);
+CREATE INDEX IF NOT EXISTS idx_categories_name ON catalog.categories(name);
+CREATE INDEX IF NOT EXISTS idx_categories_code ON catalog.categories(code);
+CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON catalog.categories(parent_id);
 
 -- Attributes table
 CREATE TABLE IF NOT EXISTS catalog.attributes (
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS catalog.attributes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_attributes_name ON catalog.attributes(name);
-CREATE INDEX idx_attributes_code ON catalog.attributes(code);
+CREATE INDEX IF NOT EXISTS idx_attributes_name ON catalog.attributes(name);
+CREATE INDEX IF NOT EXISTS idx_attributes_code ON catalog.attributes(code);
 
 -- Library parts table
 CREATE TABLE IF NOT EXISTS catalog.library_parts (
@@ -71,13 +71,13 @@ CREATE TABLE IF NOT EXISTS catalog.library_parts (
     CONSTRAINT idx_part_number_mfr UNIQUE (part_number, manufacturer_id)
 );
 
-CREATE INDEX idx_library_parts_part_number ON catalog.library_parts(part_number);
-CREATE INDEX idx_library_parts_manufacturer_id ON catalog.library_parts(manufacturer_id);
-CREATE INDEX idx_library_parts_category_id ON catalog.library_parts(category_id);
-CREATE INDEX idx_library_parts_status ON catalog.library_parts(status);
-CREATE INDEX idx_library_parts_is_duplicate ON catalog.library_parts(is_duplicate);
-CREATE INDEX idx_library_parts_duplicate_of ON catalog.library_parts(duplicate_of);
-CREATE INDEX idx_library_parts_deleted_at ON catalog.library_parts(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_library_parts_part_number ON catalog.library_parts(part_number);
+CREATE INDEX IF NOT EXISTS idx_library_parts_manufacturer_id ON catalog.library_parts(manufacturer_id);
+CREATE INDEX IF NOT EXISTS idx_library_parts_category_id ON catalog.library_parts(category_id);
+CREATE INDEX IF NOT EXISTS idx_library_parts_status ON catalog.library_parts(status);
+CREATE INDEX IF NOT EXISTS idx_library_parts_is_duplicate ON catalog.library_parts(is_duplicate);
+CREATE INDEX IF NOT EXISTS idx_library_parts_duplicate_of ON catalog.library_parts(duplicate_of);
+CREATE INDEX IF NOT EXISTS idx_library_parts_deleted_at ON catalog.library_parts(deleted_at);
 
 -- Part attributes table
 CREATE TABLE IF NOT EXISTS catalog.part_attributes (
@@ -90,5 +90,5 @@ CREATE TABLE IF NOT EXISTS catalog.part_attributes (
     CONSTRAINT unique_part_attribute UNIQUE (part_id, attribute_id)
 );
 
-CREATE INDEX idx_part_attributes_part_id ON catalog.part_attributes(part_id);
-CREATE INDEX idx_part_attributes_attribute_id ON catalog.part_attributes(attribute_id);
+CREATE INDEX IF NOT EXISTS idx_part_attributes_part_id ON catalog.part_attributes(part_id);
+CREATE INDEX IF NOT EXISTS idx_part_attributes_attribute_id ON catalog.part_attributes(attribute_id);

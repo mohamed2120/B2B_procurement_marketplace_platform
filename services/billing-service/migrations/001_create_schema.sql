@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS billing.plans (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_plans_code ON billing.plans(code);
-CREATE INDEX idx_plans_is_active ON billing.plans(is_active);
+CREATE INDEX IF NOT EXISTS idx_plans_code ON billing.plans(code);
+CREATE INDEX IF NOT EXISTS idx_plans_is_active ON billing.plans(is_active);
 
 -- Entitlements table
 CREATE TABLE IF NOT EXISTS billing.entitlements (
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS billing.entitlements (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_entitlements_plan_id ON billing.entitlements(plan_id);
-CREATE INDEX idx_entitlements_feature ON billing.entitlements(feature);
+CREATE INDEX IF NOT EXISTS idx_entitlements_plan_id ON billing.entitlements(plan_id);
+CREATE INDEX IF NOT EXISTS idx_entitlements_feature ON billing.entitlements(feature);
 
 -- Subscriptions table
 CREATE TABLE IF NOT EXISTS billing.subscriptions (
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS billing.subscriptions (
     CONSTRAINT unique_tenant_active_subscription UNIQUE (tenant_id, status) WHERE status = 'active'
 );
 
-CREATE INDEX idx_subscriptions_tenant_id ON billing.subscriptions(tenant_id);
-CREATE INDEX idx_subscriptions_plan_id ON billing.subscriptions(plan_id);
-CREATE INDEX idx_subscriptions_status ON billing.subscriptions(status);
-CREATE INDEX idx_subscriptions_deleted_at ON billing.subscriptions(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_tenant_id ON billing.subscriptions(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_id ON billing.subscriptions(plan_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON billing.subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_deleted_at ON billing.subscriptions(deleted_at);

@@ -15,10 +15,10 @@ CREATE TABLE IF NOT EXISTS collaboration.chat_threads (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_chat_threads_tenant_id ON collaboration.chat_threads(tenant_id);
-CREATE INDEX idx_chat_threads_thread_type ON collaboration.chat_threads(thread_type);
-CREATE INDEX idx_chat_threads_reference_id ON collaboration.chat_threads(reference_id);
-CREATE INDEX idx_chat_threads_deleted_at ON collaboration.chat_threads(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_chat_threads_tenant_id ON collaboration.chat_threads(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_chat_threads_thread_type ON collaboration.chat_threads(thread_type);
+CREATE INDEX IF NOT EXISTS idx_chat_threads_reference_id ON collaboration.chat_threads(reference_id);
+CREATE INDEX IF NOT EXISTS idx_chat_threads_deleted_at ON collaboration.chat_threads(deleted_at);
 
 -- Thread participants table
 CREATE TABLE IF NOT EXISTS collaboration.thread_participants (
@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS collaboration.thread_participants (
     CONSTRAINT unique_thread_user UNIQUE (thread_id, user_id)
 );
 
-CREATE INDEX idx_thread_participants_thread_id ON collaboration.thread_participants(thread_id);
-CREATE INDEX idx_thread_participants_user_id ON collaboration.thread_participants(user_id);
-CREATE INDEX idx_thread_participants_tenant_id ON collaboration.thread_participants(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_thread_participants_thread_id ON collaboration.thread_participants(thread_id);
+CREATE INDEX IF NOT EXISTS idx_thread_participants_user_id ON collaboration.thread_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_thread_participants_tenant_id ON collaboration.thread_participants(tenant_id);
 
 -- Chat messages table
 CREATE TABLE IF NOT EXISTS collaboration.chat_messages (
@@ -50,10 +50,10 @@ CREATE TABLE IF NOT EXISTS collaboration.chat_messages (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_chat_messages_thread_id ON collaboration.chat_messages(thread_id);
-CREATE INDEX idx_chat_messages_sender_id ON collaboration.chat_messages(sender_id);
-CREATE INDEX idx_chat_messages_created_at ON collaboration.chat_messages(created_at);
-CREATE INDEX idx_chat_messages_deleted_at ON collaboration.chat_messages(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_thread_id ON collaboration.chat_messages(thread_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_sender_id ON collaboration.chat_messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON collaboration.chat_messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_deleted_at ON collaboration.chat_messages(deleted_at);
 
 -- Message files table
 CREATE TABLE IF NOT EXISTS collaboration.message_files (
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS collaboration.message_files (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_message_files_message_id ON collaboration.message_files(message_id);
+CREATE INDEX IF NOT EXISTS idx_message_files_message_id ON collaboration.message_files(message_id);
 
 -- Disputes table
 CREATE TABLE IF NOT EXISTS collaboration.disputes (
@@ -86,10 +86,10 @@ CREATE TABLE IF NOT EXISTS collaboration.disputes (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_disputes_tenant_id ON collaboration.disputes(tenant_id);
-CREATE INDEX idx_disputes_order_id ON collaboration.disputes(order_id);
-CREATE INDEX idx_disputes_status ON collaboration.disputes(status);
-CREATE INDEX idx_disputes_deleted_at ON collaboration.disputes(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_disputes_tenant_id ON collaboration.disputes(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_disputes_order_id ON collaboration.disputes(order_id);
+CREATE INDEX IF NOT EXISTS idx_disputes_status ON collaboration.disputes(status);
+CREATE INDEX IF NOT EXISTS idx_disputes_deleted_at ON collaboration.disputes(deleted_at);
 
 -- Ratings table
 CREATE TABLE IF NOT EXISTS collaboration.ratings (
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS collaboration.ratings (
     CONSTRAINT unique_order_rated_by_entity UNIQUE (order_id, rated_by, rated_entity_type, rated_entity_id)
 );
 
-CREATE INDEX idx_ratings_tenant_id ON collaboration.ratings(tenant_id);
-CREATE INDEX idx_ratings_order_id ON collaboration.ratings(order_id);
-CREATE INDEX idx_ratings_rated_entity ON collaboration.ratings(rated_entity_type, rated_entity_id);
-CREATE INDEX idx_ratings_rating ON collaboration.ratings(rating);
+CREATE INDEX IF NOT EXISTS idx_ratings_tenant_id ON collaboration.ratings(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_order_id ON collaboration.ratings(order_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_rated_entity ON collaboration.ratings(rated_entity_type, rated_entity_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_rating ON collaboration.ratings(rating);

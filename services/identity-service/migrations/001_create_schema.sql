@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS identity.users (
     CONSTRAINT idx_tenant_email UNIQUE (tenant_id, email)
 );
 
-CREATE INDEX idx_users_tenant_id ON identity.users(tenant_id);
-CREATE INDEX idx_users_email ON identity.users(email);
-CREATE INDEX idx_users_deleted_at ON identity.users(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON identity.users(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON identity.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON identity.users(deleted_at);
 
 -- Roles table
 CREATE TABLE IF NOT EXISTS identity.roles (
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS identity.roles (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_roles_name ON identity.roles(name);
+CREATE INDEX IF NOT EXISTS idx_roles_name ON identity.roles(name);
 
 -- Permissions table
 CREATE TABLE IF NOT EXISTS identity.permissions (
@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS identity.permissions (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_permissions_resource ON identity.permissions(resource);
-CREATE INDEX idx_permissions_resource_action ON identity.permissions(resource, action);
+CREATE INDEX IF NOT EXISTS idx_permissions_resource ON identity.permissions(resource);
+CREATE INDEX IF NOT EXISTS idx_permissions_resource_action ON identity.permissions(resource, action);
 
 -- Role permissions table
 CREATE TABLE IF NOT EXISTS identity.role_permissions (
@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS identity.role_permissions (
     CONSTRAINT unique_role_permission UNIQUE (role_id, permission_id)
 );
 
-CREATE INDEX idx_role_permissions_role_id ON identity.role_permissions(role_id);
-CREATE INDEX idx_role_permissions_permission_id ON identity.role_permissions(permission_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON identity.role_permissions(role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON identity.role_permissions(permission_id);
 
 -- User roles table
 CREATE TABLE IF NOT EXISTS identity.user_roles (
@@ -73,9 +73,9 @@ CREATE TABLE IF NOT EXISTS identity.user_roles (
     CONSTRAINT unique_user_role_tenant UNIQUE (user_id, role_id, tenant_id)
 );
 
-CREATE INDEX idx_user_roles_user_id ON identity.user_roles(user_id);
-CREATE INDEX idx_user_roles_role_id ON identity.user_roles(role_id);
-CREATE INDEX idx_user_roles_tenant_id ON identity.user_roles(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON identity.user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON identity.user_roles(role_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_tenant_id ON identity.user_roles(tenant_id);
 
 -- User invitations table
 CREATE TABLE IF NOT EXISTS identity.user_invitations (
@@ -91,6 +91,6 @@ CREATE TABLE IF NOT EXISTS identity.user_invitations (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_user_invitations_tenant_id ON identity.user_invitations(tenant_id);
-CREATE INDEX idx_user_invitations_token ON identity.user_invitations(token);
-CREATE INDEX idx_user_invitations_email ON identity.user_invitations(email);
+CREATE INDEX IF NOT EXISTS idx_user_invitations_tenant_id ON identity.user_invitations(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_user_invitations_token ON identity.user_invitations(token);
+CREATE INDEX IF NOT EXISTS idx_user_invitations_email ON identity.user_invitations(email);

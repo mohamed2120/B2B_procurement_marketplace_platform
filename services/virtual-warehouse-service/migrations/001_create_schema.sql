@@ -16,11 +16,11 @@ CREATE TABLE IF NOT EXISTS virtual_warehouse.shared_inventory (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_shared_inventory_tenant_id ON virtual_warehouse.shared_inventory(tenant_id);
-CREATE INDEX idx_shared_inventory_part_id ON virtual_warehouse.shared_inventory(part_id);
-CREATE INDEX idx_shared_inventory_equipment_id ON virtual_warehouse.shared_inventory(equipment_id);
-CREATE INDEX idx_shared_inventory_is_available ON virtual_warehouse.shared_inventory(is_available);
-CREATE INDEX idx_shared_inventory_deleted_at ON virtual_warehouse.shared_inventory(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_shared_inventory_tenant_id ON virtual_warehouse.shared_inventory(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_shared_inventory_part_id ON virtual_warehouse.shared_inventory(part_id);
+CREATE INDEX IF NOT EXISTS idx_shared_inventory_equipment_id ON virtual_warehouse.shared_inventory(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_shared_inventory_is_available ON virtual_warehouse.shared_inventory(is_available);
+CREATE INDEX IF NOT EXISTS idx_shared_inventory_deleted_at ON virtual_warehouse.shared_inventory(deleted_at);
 
 -- Equipment groups table
 CREATE TABLE IF NOT EXISTS virtual_warehouse.equipment_groups (
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS virtual_warehouse.equipment_groups (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_equipment_groups_tenant_id ON virtual_warehouse.equipment_groups(tenant_id);
-CREATE INDEX idx_equipment_groups_deleted_at ON virtual_warehouse.equipment_groups(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_equipment_groups_tenant_id ON virtual_warehouse.equipment_groups(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_equipment_groups_deleted_at ON virtual_warehouse.equipment_groups(deleted_at);
 
 -- Equipment group members table
 CREATE TABLE IF NOT EXISTS virtual_warehouse.equipment_group_members (
@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS virtual_warehouse.equipment_group_members (
     CONSTRAINT unique_group_equipment UNIQUE (group_id, equipment_id)
 );
 
-CREATE INDEX idx_equipment_group_members_group_id ON virtual_warehouse.equipment_group_members(group_id);
-CREATE INDEX idx_equipment_group_members_equipment_id ON virtual_warehouse.equipment_group_members(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_equipment_group_members_group_id ON virtual_warehouse.equipment_group_members(group_id);
+CREATE INDEX IF NOT EXISTS idx_equipment_group_members_equipment_id ON virtual_warehouse.equipment_group_members(equipment_id);
 
 -- Inter-company transfers table
 CREATE TABLE IF NOT EXISTS virtual_warehouse.inter_company_transfers (
@@ -65,11 +65,11 @@ CREATE TABLE IF NOT EXISTS virtual_warehouse.inter_company_transfers (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_transfers_from_tenant_id ON virtual_warehouse.inter_company_transfers(from_tenant_id);
-CREATE INDEX idx_transfers_to_tenant_id ON virtual_warehouse.inter_company_transfers(to_tenant_id);
-CREATE INDEX idx_transfers_part_id ON virtual_warehouse.inter_company_transfers(part_id);
-CREATE INDEX idx_transfers_status ON virtual_warehouse.inter_company_transfers(status);
-CREATE INDEX idx_transfers_deleted_at ON virtual_warehouse.inter_company_transfers(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_transfers_from_tenant_id ON virtual_warehouse.inter_company_transfers(from_tenant_id);
+CREATE INDEX IF NOT EXISTS idx_transfers_to_tenant_id ON virtual_warehouse.inter_company_transfers(to_tenant_id);
+CREATE INDEX IF NOT EXISTS idx_transfers_part_id ON virtual_warehouse.inter_company_transfers(part_id);
+CREATE INDEX IF NOT EXISTS idx_transfers_status ON virtual_warehouse.inter_company_transfers(status);
+CREATE INDEX IF NOT EXISTS idx_transfers_deleted_at ON virtual_warehouse.inter_company_transfers(deleted_at);
 
 -- Emergency sourcing table
 CREATE TABLE IF NOT EXISTS virtual_warehouse.emergency_sourcing (
@@ -89,8 +89,8 @@ CREATE TABLE IF NOT EXISTS virtual_warehouse.emergency_sourcing (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_emergency_sourcing_tenant_id ON virtual_warehouse.emergency_sourcing(tenant_id);
-CREATE INDEX idx_emergency_sourcing_part_id ON virtual_warehouse.emergency_sourcing(part_id);
-CREATE INDEX idx_emergency_sourcing_status ON virtual_warehouse.emergency_sourcing(status);
-CREATE INDEX idx_emergency_sourcing_priority ON virtual_warehouse.emergency_sourcing(priority);
-CREATE INDEX idx_emergency_sourcing_deleted_at ON virtual_warehouse.emergency_sourcing(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_emergency_sourcing_tenant_id ON virtual_warehouse.emergency_sourcing(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_sourcing_part_id ON virtual_warehouse.emergency_sourcing(part_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_sourcing_status ON virtual_warehouse.emergency_sourcing(status);
+CREATE INDEX IF NOT EXISTS idx_emergency_sourcing_priority ON virtual_warehouse.emergency_sourcing(priority);
+CREATE INDEX IF NOT EXISTS idx_emergency_sourcing_deleted_at ON virtual_warehouse.emergency_sourcing(deleted_at);

@@ -20,11 +20,11 @@ CREATE TABLE IF NOT EXISTS logistics.shipments (
     deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_shipments_tenant_id ON logistics.shipments(tenant_id);
-CREATE INDEX idx_shipments_po_id ON logistics.shipments(po_id);
-CREATE INDEX idx_shipments_status ON logistics.shipments(status);
-CREATE INDEX idx_shipments_eta ON logistics.shipments(eta);
-CREATE INDEX idx_shipments_is_late ON logistics.shipments(is_late);
+CREATE INDEX IF NOT EXISTS idx_shipments_tenant_id ON logistics.shipments(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_po_id ON logistics.shipments(po_id);
+CREATE INDEX IF NOT EXISTS idx_shipments_status ON logistics.shipments(status);
+CREATE INDEX IF NOT EXISTS idx_shipments_eta ON logistics.shipments(eta);
+CREATE INDEX IF NOT EXISTS idx_shipments_is_late ON logistics.shipments(is_late);
 
 -- Tracking events table
 CREATE TABLE IF NOT EXISTS logistics.tracking_events (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS logistics.tracking_events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_tracking_events_shipment_id ON logistics.tracking_events(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_tracking_events_shipment_id ON logistics.tracking_events(shipment_id);
 
 -- Proof of delivery table
 CREATE TABLE IF NOT EXISTS logistics.proof_of_delivery (
@@ -50,4 +50,4 @@ CREATE TABLE IF NOT EXISTS logistics.proof_of_delivery (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_pod_shipment_id ON logistics.proof_of_delivery(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_pod_shipment_id ON logistics.proof_of_delivery(shipment_id);
