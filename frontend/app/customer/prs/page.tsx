@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, hasRole } from '@/lib/auth';
 import { apiClients } from '@/lib/api';
 import Header from '@/components/layout/Header';
@@ -22,7 +22,7 @@ interface PR {
 }
 
 export default function PRListPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [prs, setPRs] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
 

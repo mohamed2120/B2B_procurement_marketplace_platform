@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, hasRole } from '@/lib/auth';
 import { apiClients } from '@/lib/api';
 import Header from '@/components/layout/Header';
@@ -21,7 +21,7 @@ interface Listing {
 }
 
 export default function ListingsPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);

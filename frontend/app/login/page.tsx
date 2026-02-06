@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import Link from 'next/link';
 import { login } from '@/lib/auth';
 import Input from '@/components/ui/Input';
@@ -10,7 +10,7 @@ import Card from '@/components/ui/Card';
 import PublicLayout from '@/components/layout/PublicLayout';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

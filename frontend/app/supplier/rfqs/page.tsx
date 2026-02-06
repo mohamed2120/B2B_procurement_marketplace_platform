@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, hasRole } from '@/lib/auth';
 import { apiClients } from '@/lib/api';
 import Header from '@/components/layout/Header';
@@ -20,7 +20,7 @@ interface RFQ {
 }
 
 export default function SupplierRFQPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [rfqs, setRFQs] = useState<RFQ[]>([]);
   const [loading, setLoading] = useState(true);
 

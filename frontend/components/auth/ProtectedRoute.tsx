@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated } from '@/lib/auth';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
-  const router = useRouter();
+  const router = useSafeRouter();
 
   useEffect(() => {
     setMounted(true);

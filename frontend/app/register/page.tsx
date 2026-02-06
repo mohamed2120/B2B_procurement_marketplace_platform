@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import PublicLayout from '@/components/layout/PublicLayout';
 import Link from 'next/link';
 
 export default function Register() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [companyType, setCompanyType] = useState<'buyer' | 'supplier' | null>(null);
   const [formData, setFormData] = useState({
     companyName: '',

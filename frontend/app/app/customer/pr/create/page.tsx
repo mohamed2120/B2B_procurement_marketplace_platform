@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { apiClients } from '@/lib/api';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function CreatePR() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [formData, setFormData] = useState({
     title: '',
     description: '',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, hasRole } from '@/lib/auth';
 import { apiClients } from '@/lib/api';
 import Header from '@/components/layout/Header';
@@ -11,7 +11,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function CreatePRPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [items, setItems] = useState([{ description: '', quantity: 1, unit_price: 0 }]);

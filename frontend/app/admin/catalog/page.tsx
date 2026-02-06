@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, hasRole } from '@/lib/auth';
 import { apiClients } from '@/lib/api';
 import Header from '@/components/layout/Header';
@@ -18,7 +18,7 @@ interface Part {
 }
 
 export default function CatalogApprovalsPage() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [parts, setParts] = useState<Part[]>([]);
   const [loading, setLoading] = useState(true);
 

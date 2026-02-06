@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { getUser, logout } from '@/lib/auth';
 import { useState, useEffect } from 'react';
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
-  const router = useRouter();
+  const router = useSafeRouter();
   const [user, setUser] = useState(getUser());
   const [showMenu, setShowMenu] = useState(false);
 
@@ -18,11 +18,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
-    if (mounted) {
-      router.push('/login');
-    } else {
-      window.location.href = '/login';
-    }
+    router.push('/login');
   };
 
   return (

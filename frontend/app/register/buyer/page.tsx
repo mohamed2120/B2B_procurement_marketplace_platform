@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import Link from 'next/link';
 import PublicLayout from '@/components/layout/PublicLayout';
 import Input from '@/components/ui/Input';
@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 export default function RegisterBuyer() {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [formData, setFormData] = useState({
     companyName: '',
     email: '',

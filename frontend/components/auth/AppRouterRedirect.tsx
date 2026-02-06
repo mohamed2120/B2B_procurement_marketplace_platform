@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useSafeRouter } from '@/lib/useSafeRouter';
 import { isAuthenticated, getUser, hasRole } from '@/lib/auth';
 
 export default function AppRouterRedirect() {
   const [mounted, setMounted] = useState(false);
-  const router = useRouter();
+  const router = useSafeRouter();
   const pathname = usePathname();
 
   useEffect(() => {
