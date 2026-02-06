@@ -85,7 +85,6 @@ func main() {
 	healthChecker := health.NewHealthChecker("billing-service", db, redisClient)
 	r.GET("/health", healthChecker.Health)
 	r.GET("/ready", healthChecker.Ready)
-	})
 
 	api := r.Group("/api/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))
