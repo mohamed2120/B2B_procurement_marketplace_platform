@@ -1,0 +1,475 @@
+services:
+  # Infrastructure
+  postgres:
+    image: postgres:15
+    container_name: b2b-postgres
+    environment:
+      POSTGRES_USER: b2b_user
+      POSTGRES_PASSWORD: b2b_password
+      POSTGRES_DB: b2b_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U b2b_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: b2b-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: b2b-opensearch
+    environment:
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - plugins.security.disabled=true
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: b2b-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Backend Services
+  identity-service:
+    build:
+      context: .
+      dockerfile: services/identity-service/Dockerfile
+    container_name: b2b-identity
+    environment:
+      - PORT=8001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key-change-in-production-minimum-32-characters}
+      - JWT_EXPIRY_HOURS=24
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  company-service:
+    build:
+      context: .
+      dockerfile: services/company-service/Dockerfile
+    container_name: b2b-company
+    environment:
+      - PORT=8002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - IDENTITY_SERVICE_URL=http://identity-service:8001
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  catalog-service:
+    build:
+      context: .
+      dockerfile: services/catalog-service/Dockerfile
+    container_name: b2b-catalog
+    environment:
+      - PORT=8003
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENSEARCH_URL=http://opensearch:9200
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  equipment-service:
+    build:
+      context: .
+      dockerfile: services/equipment-service/Dockerfile
+    container_name: b2b-equipment
+    environment:
+      - PORT=8004
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  marketplace-service:
+    build:
+      context: .
+      dockerfile: services/marketplace-service/Dockerfile
+    container_name: b2b-marketplace
+    environment:
+      - PORT=8005
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_USE_SSL=false
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  procurement-service:
+    build:
+      context: .
+      dockerfile: services/procurement-service/Dockerfile
+    container_name: b2b-procurement
+    environment:
+      - PORT=8006
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BILLING_SERVICE_URL=http://billing-service:8010
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      billing-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8006/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  logistics-service:
+    build:
+      context: .
+      dockerfile: services/logistics-service/Dockerfile
+    container_name: b2b-logistics
+    environment:
+      - PORT=8007
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8007:8007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8007/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  collaboration-service:
+    build:
+      context: .
+      dockerfile: services/collaboration-service/Dockerfile
+    container_name: b2b-collaboration
+    environment:
+      - PORT=8008
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_USE_SSL=false
+    ports:
+      - "8008:8008"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: b2b-notification
+    environment:
+      - PORT=8009
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8009:8009"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8009/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: services/billing-service/Dockerfile
+    container_name: b2b-billing
+    environment:
+      - PORT=8010
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8010:8010"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  virtual-warehouse-service:
+    build:
+      context: .
+      dockerfile: services/virtual-warehouse-service/Dockerfile
+    container_name: b2b-virtual-warehouse
+    environment:
+      - PORT=8011
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8011:8011"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8011/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  search-indexer-service:
+    build:
+      context: .
+      dockerfile: services/search-indexer-service/Dockerfile
+    container_name: b2b-search-indexer
+    environment:
+      - PORT=8012
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENSEARCH_URL=http://opensearch:9200
+    ports:
+      - "8012:8012"
+    depends_on:
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8012/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: b2b-frontend
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8008
+      - NEXT_PUBLIC_IDENTITY_SERVICE_URL=http://localhost:8001
+      - NEXT_PUBLIC_COMPANY_SERVICE_URL=http://localhost:8002
+      - NEXT_PUBLIC_CATALOG_SERVICE_URL=http://localhost:8003
+      - NEXT_PUBLIC_PROCUREMENT_SERVICE_URL=http://localhost:8006
+      - NEXT_PUBLIC_LOGISTICS_SERVICE_URL=http://localhost:8007
+      - NEXT_PUBLIC_COLLABORATION_SERVICE_URL=http://localhost:8008
+      - NEXT_PUBLIC_NOTIFICATION_SERVICE_URL=http://localhost:8009
+    ports:
+      - "3000:3000"
+    depends_on:
+      identity-service:
+        condition: service_started
+      company-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      equipment-service:
+        condition: service_started
+      marketplace-service:
+        condition: service_started
+      procurement-service:
+        condition: service_started
+      logistics-service:
+        condition: service_started
+      collaboration-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      billing-service:
+        condition: service_started
+      virtual-warehouse-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  opensearch_data:
+  minio_data:

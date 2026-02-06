@@ -1,0 +1,30 @@
+# AWS Configuration
+aws_region  = "us-east-1"
+environment = "staging"
+
+# VPC Configuration
+vpc_cidr = "10.0.0.0/16"
+
+# Domain and Certificate
+domain_name     = "staging.b2b-platform.example.com"
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/xxxx-xxxx-xxxx"
+
+# Database Configuration
+db_instance_class   = "db.t3.medium"
+db_allocated_storage = 100
+db_name             = "b2b_platform"
+db_username         = "b2b_admin"
+db_password         = "CHANGE_ME_IN_PRODUCTION" # Use AWS Secrets Manager in production
+db_backup_retention = 7
+
+# Redis Configuration
+redis_node_type      = "cache.t3.micro"
+redis_num_cache_nodes = 1
+
+# OpenSearch Configuration
+opensearch_instance_type  = "t3.small.search"
+opensearch_instance_count  = 2
+opensearch_volume_size    = 20
+
+# Logging
+log_retention_days = 7

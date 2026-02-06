@@ -1,0 +1,310 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: b2b-postgres
+    environment:
+      POSTGRES_USER: b2b_user
+      POSTGRES_PASSWORD: b2b_password
+      POSTGRES_DB: b2b_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U b2b_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: b2b-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: b2b-opensearch
+    environment:
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - plugins.security.disabled=true
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: b2b-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Microservices
+  identity-service:
+    build:
+      context: ..
+      dockerfile: services/identity-service/Dockerfile
+    container_name: b2b-identity
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key-change-in-production}
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../services/identity-service:/app
+
+  company-service:
+    build:
+      context: ..
+      dockerfile: services/company-service/Dockerfile
+    container_name: b2b-company
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - IDENTITY_SERVICE_URL=http://identity-service:8001
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+      - redis
+      - identity-service
+
+  catalog-service:
+    build:
+      context: ..
+      dockerfile: services/catalog-service/Dockerfile
+    container_name: b2b-catalog
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8003:8003"
+    depends_on:
+      - postgres
+      - redis
+
+  equipment-service:
+    build:
+      context: ..
+      dockerfile: services/equipment-service/Dockerfile
+    container_name: b2b-equipment
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8004:8004"
+    depends_on:
+      - postgres
+      - redis
+
+  marketplace-service:
+    build:
+      context: ..
+      dockerfile: services/marketplace-service/Dockerfile
+    container_name: b2b-marketplace
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8005:8005"
+    depends_on:
+      - postgres
+      - redis
+
+  procurement-service:
+    build:
+      context: ..
+      dockerfile: services/procurement-service/Dockerfile
+    container_name: b2b-procurement
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8006:8006"
+    depends_on:
+      - postgres
+      - redis
+
+  logistics-service:
+    build:
+      context: ..
+      dockerfile: services/logistics-service/Dockerfile
+    container_name: b2b-logistics
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8007:8007"
+    depends_on:
+      - postgres
+      - redis
+
+  collaboration-service:
+    build:
+      context: ..
+      dockerfile: services/collaboration-service/Dockerfile
+    container_name: b2b-collaboration
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    ports:
+      - "8008:8008"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: services/notification-service/Dockerfile
+    container_name: b2b-notification
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8009:8009"
+    depends_on:
+      - postgres
+      - redis
+
+  billing-service:
+    build:
+      context: ..
+      dockerfile: services/billing-service/Dockerfile
+    container_name: b2b-billing
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8010:8010"
+    depends_on:
+      - postgres
+      - redis
+
+  virtual-warehouse-service:
+    build:
+      context: ..
+      dockerfile: services/virtual-warehouse-service/Dockerfile
+    container_name: b2b-virtual-warehouse
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8011:8011"
+    depends_on:
+      - postgres
+      - redis
+
+  search-indexer-service:
+    build:
+      context: ..
+      dockerfile: services/search-indexer-service/Dockerfile
+    container_name: b2b-search-indexer
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENSEARCH_URL=http://opensearch:9200
+    ports:
+      - "8012:8012"
+    depends_on:
+      - redis
+      - opensearch
+
+volumes:
+  postgres_data:
+  redis_data:
+  opensearch_data:
+  minio_data:
