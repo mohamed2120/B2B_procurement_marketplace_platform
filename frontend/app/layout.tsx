@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { TenantProvider } from '@/contexts/TenantContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,9 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <TenantProvider>
-          {children}
-        </TenantProvider>
+        <ErrorBoundary>
+          <TenantProvider>
+            {children}
+          </TenantProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -52,3 +52,4 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_tenant_id ON billing.subscriptions(
 CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_id ON billing.subscriptions(plan_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON billing.subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_deleted_at ON billing.subscriptions(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_tenant_active_subscription ON billing.subscriptions(tenant_id) WHERE status = 'active';
