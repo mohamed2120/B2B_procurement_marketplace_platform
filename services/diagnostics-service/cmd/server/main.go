@@ -40,6 +40,12 @@ func main() {
 	// Setup router
 	r := gin.Default()
 
+	
+	// Health endpoints
+	healthChecker := health.NewHealthChecker("diagnostics-service", db, nil)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
+
 	// Configure CORS
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
@@ -51,11 +57,7 @@ func main() {
 	// Add logging middleware
 	r.Use(middleware.RequestLogging(logger))
 
-	// Health endpoints
-	healthChecker := health.NewHealthChecker("diagnostics-service", db, nil)
-	r.GET("/health", healthChecker.Health)
-	r.GET("/ready", healthChecker.Ready)
-
+	
 	// API routes (admin only - role check should be done in handler)
 	api := r.Group("/api/diagnostics/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))

@@ -47,6 +47,16 @@ func main() {
 
 	r := gin.Default()
 
+	
+	// Health endpoints
+	var redisClient *redis.Client
+	if redisClient == nil {
+		redisClient, _ = redis.GetRedisClient()
+	}
+	healthChecker := health.NewHealthChecker("procurement-service", db, redisClient)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
+
 	// Configure CORS
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
@@ -67,15 +77,7 @@ func main() {
 	// Add error handler middleware
 	r.Use(middleware.ErrorHandler(diagnosticsReporter, "procurement-service"))
 
-	// Health endpoints
-	var redisClient *redis.Client
-	if redisClient == nil {
-		redisClient, _ = redis.GetRedisClient()
-	}
-	healthChecker := health.NewHealthChecker("procurement-service", db, redisClient)
-	r.GET("/health", healthChecker.Health)
-	r.GET("/ready", healthChecker.Ready)
-
+	
 	api := r.Group("/api/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))
 	api.Use(auth.TenantMiddleware())

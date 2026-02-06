@@ -39,7 +39,6 @@ services:
       - discovery.type=single-node
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - plugins.security.disabled=true
-      start_period: 30s
     ports:
       - "9200:9200"
       - "9600:9600"
