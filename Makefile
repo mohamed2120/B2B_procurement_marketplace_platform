@@ -1,4 +1,4 @@
-.PHONY: help dev-up dev-down migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check
+.PHONY: help dev-up dev-down migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check verify verify-logs
 
 help:
 	@echo "Available commands:"
@@ -7,6 +7,8 @@ help:
 	@echo "  make logs-all            - View logs from all services"
 	@echo "  make reset-all           - Stop, remove volumes, and restart all services"
 	@echo "  make health-check        - Check health of all backend services"
+	@echo "  make verify              - Full verification: build, start, test, and verify everything"
+	@echo "  make verify-logs         - Dump logs for failing services"
 	@echo "  make dev-up              - Start infrastructure services only"
 	@echo "  make dev-down            - Stop infrastructure services"
 	@echo "  make migrate-all         - Run all database migrations"
@@ -61,6 +63,58 @@ health-check:
 	@echo "Frontend check:"
 	@curl -f -s http://localhost:3000 > /dev/null 2>&1 && echo "✅ frontend (port 3000): OK" || echo "❌ frontend (port 3000): FAIL"
 
+verify:
+	@echo "=========================================="
+	@echo "VERIFICATION GATE - Definition of Done"
+	@echo "=========================================="
+	@echo ""
+	@mkdir -p reports/logs
+	@echo "Step 1/9: Starting all services..."
+	@docker compose -f docker-compose.all.yml up -d --build || (echo "❌ FAIL: Service startup failed" && exit 1)
+	@echo "✅ Services started"
+	@echo ""
+	@echo "Step 2/9: Waiting for services to be ready..."
+	@python3 scripts/wait_for_ready.py || (echo "❌ FAIL: Services not ready within timeout" && exit 1)
+	@echo "✅ All services ready"
+	@echo ""
+	@echo "Step 3/9: Running migrations..."
+	@make migrate-all || (echo "❌ FAIL: Migrations failed" && exit 1)
+	@echo "✅ Migrations completed"
+	@echo ""
+	@echo "Step 4/9: Seeding databases..."
+	@make seed-all || (echo "❌ FAIL: Seeding failed" && exit 1)
+	@echo "✅ Seeding completed"
+	@echo ""
+	@echo "Step 5/9: Running unit tests..."
+	@make test || (echo "❌ FAIL: Unit tests failed" && exit 1)
+	@echo "✅ Unit tests passed"
+	@echo ""
+	@echo "Step 6/9: Running integration tests..."
+	@make test-integration || (echo "❌ FAIL: Integration tests failed" && exit 1)
+	@echo "✅ Integration tests passed"
+	@echo ""
+	@echo "Step 7/9: Checking frontend build..."
+	@docker compose -f docker-compose.all.yml exec -T frontend npm run lint || (echo "❌ FAIL: Frontend lint failed" && exit 1)
+	@docker compose -f docker-compose.all.yml exec -T frontend npm run build || (echo "❌ FAIL: Frontend build failed" && exit 1)
+	@echo "✅ Frontend build passed"
+	@echo ""
+	@echo "Step 8/9: Running smoke tests..."
+	@cd frontend && npm run test:e2e || (echo "❌ FAIL: Smoke tests failed" && exit 1)
+	@echo "✅ Smoke tests passed"
+	@echo ""
+	@echo "Step 9/9: Generating verification report..."
+	@python3 scripts/generate_verify_report.py
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ VERIFICATION PASSED - All checks OK"
+	@echo "=========================================="
+	@echo "Report: reports/verify_report.md"
+
+verify-logs:
+	@echo "Collecting logs for failing services..."
+	@mkdir -p reports/logs
+	@python3 scripts/collect_failure_logs.py
+
 dev-up:
 	@echo "Starting all services..."
 	docker-compose -f deployments/docker-compose.yml up -d
@@ -102,22 +156,16 @@ seed-all:
 	@cd services/notification-service && go run cmd/seed/main.go
 	@cd services/billing-service && go run cmd/seed/main.go
 	@cd services/virtual-warehouse-service && go run cmd/seed/main.go
+	@cd services/search-indexer-service && go run cmd/seed/main.go
+	@cd services/diagnostics-service && go run cmd/seed/main.go
 	@echo "All seeds completed."
 
 test:
-	@echo "Running all unit tests..."
-	@cd services/identity-service && go test ./... -v
-	@cd services/company-service && go test ./... -v
-	@cd services/catalog-service && go test ./... -v
-	@cd services/equipment-service && go test ./... -v
-	@cd services/marketplace-service && go test ./... -v
-	@cd services/procurement-service && go test ./... -v
-	@cd services/logistics-service && go test ./... -v
-	@cd services/collaboration-service && go test ./... -v
-	@cd services/notification-service && go test ./... -v
-	@cd services/billing-service && go test ./... -v
-	@cd services/virtual-warehouse-service && go test ./... -v
-	@cd services/search-indexer-service && go test ./... -v
+	@echo "Running unit tests for all services..."
+	@for service in identity company catalog equipment marketplace procurement logistics collaboration notification billing virtual-warehouse search-indexer diagnostics; do \
+		echo "Testing $$service-service..."; \
+		cd services/$$service-service && go test ./... -v || exit 1; \
+	done
 	@echo "All unit tests completed."
 
 test-integration:
@@ -161,15 +209,6 @@ run-virtual-warehouse:
 
 run-search-indexer:
 	@cd services/search-indexer-service && go run cmd/server/main.go
-
-run-frontend:
-	@cd frontend && npm run dev
-
-build-frontend:
-	@cd frontend && npm run build
-
-test-frontend-e2e:
-	@cd frontend && npm run test:e2e
 
 clean:
 	@echo "Cleaning up..."

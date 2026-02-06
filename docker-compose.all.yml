@@ -15,7 +15,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U b2b_user"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 30s
 
   redis:
@@ -29,7 +29,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   opensearch:
     image: opensearchproject/opensearch:2.11.0
@@ -38,16 +38,17 @@ services:
       - discovery.type=single-node
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - plugins.security.disabled=true
+      start_period: 30s
     ports:
       - "9200:9200"
       - "9600:9600"
     volumes:
       - opensearch_data:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/ready || exit 1"]
+      interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
       start_period: 30s
 
   minio:
@@ -63,11 +64,12 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/ready/live"]
+      interval: 10s
       timeout: 20s
-      retries: 3
+      retries: 10
 
+      start_period: 30s
   # Backend Services
   identity-service:
     build:
@@ -97,7 +99,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8001/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   company-service:
@@ -129,7 +131,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   catalog-service:
     build:
@@ -147,6 +149,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - OPENSEARCH_URL=http://opensearch:9200
+      start_period: 30s
     ports:
       - "8003:8003"
     depends_on:
@@ -160,7 +163,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8003/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   equipment-service:
@@ -189,7 +192,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8004/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   marketplace-service:
     build:
@@ -210,6 +213,7 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_USE_SSL=false
+      start_period: 30s
     ports:
       - "8005:8005"
     depends_on:
@@ -223,7 +227,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8005/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   procurement-service:
@@ -255,7 +259,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8006/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   logistics-service:
     build:
@@ -272,6 +276,7 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      start_period: 30s
     ports:
       - "8007:8007"
     depends_on:
@@ -283,7 +288,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8007/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   collaboration-service:
@@ -318,7 +323,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8008/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   notification-service:
     build:
@@ -335,6 +340,7 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      start_period: 30s
     ports:
       - "8009:8009"
     depends_on:
@@ -346,7 +352,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8009/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   billing-service:
@@ -375,7 +381,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8010/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
 
   virtual-warehouse-service:
     build:
@@ -392,6 +398,7 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      start_period: 30s
     ports:
       - "8011:8011"
     depends_on:
@@ -403,7 +410,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8011/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   search-indexer-service:
@@ -427,7 +434,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8012/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
   diagnostics-service:
@@ -453,8 +460,9 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8013/ready"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
+
 
   # Frontend
   frontend:
@@ -501,7 +509,7 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 10
       start_period: 30s
 
 volumes:
