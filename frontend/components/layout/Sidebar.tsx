@@ -40,6 +40,7 @@ const adminNavItems: NavItem[] = [
   { name: 'Catalog Approvals', href: '/app/admin/catalog-approvals', icon: '📚' },
   { name: 'Disputes', href: '/app/admin/disputes', icon: '⚖️' },
   { name: 'Subscriptions', href: '/app/admin/subscriptions', icon: '💳' },
+  { name: 'Diagnostics', href: '/app/admin/diagnostics', icon: '🔧' },
 ];
 
 export default function Sidebar() {

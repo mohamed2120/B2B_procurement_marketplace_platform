@@ -9,6 +9,10 @@ import (
 	"github.com/b2b-platform/virtual-warehouse-service/repository"
 	"github.com/b2b-platform/virtual-warehouse-service/service"
 	"github.com/b2b-platform/shared/auth"
+	"github.com/b2b-platform/shared/diagnostics"
+	"github.com/b2b-platform/shared/health"
+	"github.com/b2b-platform/shared/middleware"
+	"github.com/b2b-platform/shared/observability"
 	"github.com/b2b-platform/shared/database"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -47,8 +51,26 @@ func main() {
 	config.AllowCredentials = true
 	r.Use(cors.New(config))
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "service": "virtual-warehouse-service"})
+	// Initialize logger
+	logger := observability.NewLogger("virtual-warehouse-service")
+
+	// Initialize diagnostics reporter
+	diagnosticsReporter := diagnostics.NewReporter(db)
+
+	// Add logging middleware
+	r.Use(middleware.RequestLogging(logger))
+
+	// Add error handler middleware
+	r.Use(middleware.ErrorHandler(diagnosticsReporter, "virtual-warehouse-service"))
+
+	// Health endpoints
+	var redisClient *redis.Client
+	if redisClient == nil {
+		redisClient, _ = redis.GetRedisClient()
+	}
+	healthChecker := health.NewHealthChecker("virtual-warehouse-service", db, redisClient)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
 	})
 
 	api := r.Group("/api/v1")

@@ -10,7 +10,11 @@ import (
 	"github.com/b2b-platform/company-service/service"
 	"github.com/b2b-platform/shared/auth"
 	"github.com/b2b-platform/shared/database"
+	"github.com/b2b-platform/shared/diagnostics"
 	"github.com/b2b-platform/shared/events"
+	"github.com/b2b-platform/shared/health"
+	"github.com/b2b-platform/shared/middleware"
+	"github.com/b2b-platform/shared/observability"
 	"github.com/b2b-platform/shared/redis"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -37,6 +41,12 @@ func main() {
 	companyService := service.NewCompanyService(companyRepo, eventBus)
 	companyHandler := handlers.NewCompanyHandler(companyService)
 
+	// Initialize logger
+	logger := observability.NewLogger("company-service")
+
+	// Initialize diagnostics reporter
+	diagnosticsReporter := diagnostics.NewReporter(db)
+
 	r := gin.Default()
 
 	// Configure CORS
@@ -47,9 +57,16 @@ func main() {
 	config.AllowCredentials = true
 	r.Use(cors.New(config))
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "service": "company-service"})
-	})
+	// Add logging middleware
+	r.Use(middleware.RequestLogging(logger))
+
+	// Add error handler middleware
+	r.Use(middleware.ErrorHandler(diagnosticsReporter, "company-service"))
+
+	// Health endpoints
+	healthChecker := health.NewHealthChecker("company-service", db, redisClient)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
 
 	api := r.Group("/api/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))

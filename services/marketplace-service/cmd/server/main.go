@@ -9,6 +9,10 @@ import (
 	"github.com/b2b-platform/marketplace-service/repository"
 	"github.com/b2b-platform/marketplace-service/service"
 	"github.com/b2b-platform/shared/auth"
+	"github.com/b2b-platform/shared/diagnostics"
+	"github.com/b2b-platform/shared/health"
+	"github.com/b2b-platform/shared/middleware"
+	"github.com/b2b-platform/shared/observability"
 	"github.com/b2b-platform/shared/database"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -41,8 +45,26 @@ func main() {
 	config.AllowCredentials = true
 	r.Use(cors.New(config))
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "healthy", "service": "marketplace-service"})
+	// Initialize logger
+	logger := observability.NewLogger("marketplace-service")
+
+	// Initialize diagnostics reporter
+	diagnosticsReporter := diagnostics.NewReporter(db)
+
+	// Add logging middleware
+	r.Use(middleware.RequestLogging(logger))
+
+	// Add error handler middleware
+	r.Use(middleware.ErrorHandler(diagnosticsReporter, "marketplace-service"))
+
+	// Health endpoints
+	var redisClient *redis.Client
+	if redisClient == nil {
+		redisClient, _ = redis.GetRedisClient()
+	}
+	healthChecker := health.NewHealthChecker("marketplace-service", db, redisClient)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
 	})
 
 	api := r.Group("/api/v1")
