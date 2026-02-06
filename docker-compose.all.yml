@@ -428,6 +428,33 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s
+
+  diagnostics-service:
+    build:
+      context: .
+      dockerfile: services/diagnostics-service/Dockerfile
+    container_name: b2b-diagnostics
+    environment:
+      - PORT=8013
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=b2b_user
+      - DB_PASSWORD=b2b_password
+      - DB_NAME=b2b_platform
+      - DB_SSLMODE=disable
+      - ENV=development
+    ports:
+      - "8013:8013"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8013/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # Frontend
   frontend:
