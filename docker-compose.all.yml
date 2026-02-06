@@ -150,7 +150,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - OPENSEARCH_URL=http://opensearch:9200
-      start_period: 30s
     ports:
       - "8003:8003"
     depends_on:
@@ -214,7 +213,6 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_USE_SSL=false
-      start_period: 30s
     ports:
       - "8005:8005"
     depends_on:
@@ -277,7 +275,6 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      start_period: 30s
     ports:
       - "8007:8007"
     depends_on:
@@ -341,7 +338,6 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      start_period: 30s
     ports:
       - "8009:8009"
     depends_on:
@@ -399,7 +395,6 @@ services:
       - DB_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      start_period: 30s
     ports:
       - "8011:8011"
     depends_on:
