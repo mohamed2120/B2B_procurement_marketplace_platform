@@ -83,7 +83,7 @@ make seed-all
 
 | Service | Local URL | Port |
 |---------|-----------|------|
-| Frontend | http://localhost:3000 | 3000 |
+| Frontend | http://localhost:3002 | 3002 |
 | identity-service | http://localhost:8001 | 8001 |
 | company-service | http://localhost:8002 | 8002 |
 | catalog-service | http://localhost:8003 | 8003 |
@@ -223,7 +223,7 @@ make run-frontend
 cd frontend && npm run dev
 ```
 
-The frontend will be available at [http://localhost:3000](http://localhost:3000)
+The frontend will be available at [http://localhost:3002](http://localhost:3002)
 
 **Features:**
 - Tenant resolution via subdomain

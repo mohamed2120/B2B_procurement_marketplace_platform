@@ -73,4 +73,6 @@ export const apiClients = {
   diagnostics: createApiClient(SERVICE_URLS.diagnostics),
 };
 
+export const diagnostics = apiClients.diagnostics;
+
 export default apiClients;

@@ -2,24 +2,50 @@ package service
 
 import (
 	"github.com/b2b-platform/collaboration-service/models"
-	"github.com/b2b-platform/collaboration-service/repository"
 	"github.com/b2b-platform/shared/events"
 	"github.com/google/uuid"
 )
 
+type ThreadRepository interface {
+	Create(thread *models.ChatThread) error
+	GetByID(id uuid.UUID) (*models.ChatThread, error)
+	List(tenantID uuid.UUID, limit, offset int) ([]models.ChatThread, error)
+	GetUserThreads(userID, tenantID uuid.UUID) ([]models.ChatThread, error)
+	AddParticipant(participant *models.ThreadParticipant) error
+}
+
+type MessageRepository interface {
+	Create(message *models.ChatMessage) error
+	GetByThread(threadID uuid.UUID, limit, offset int) ([]models.ChatMessage, error)
+}
+
+type DisputeRepository interface {
+	Create(dispute *models.Dispute) error
+	GetByID(id uuid.UUID) (*models.Dispute, error)
+	List(tenantID uuid.UUID, status string) ([]models.Dispute, error)
+	Resolve(disputeID, resolvedBy uuid.UUID, resolution string) error
+}
+
+type RatingRepository interface {
+	Create(rating *models.Rating) error
+	GetByEntity(entityType string, entityID uuid.UUID) ([]models.Rating, error)
+	GetAverageRating(entityType string, entityID uuid.UUID) (float64, error)
+	Moderate(ratingID, moderatedBy uuid.UUID) error
+}
+
 type CollaborationService struct {
-	threadRepo  *repository.ThreadRepository
-	messageRepo *repository.MessageRepository
-	disputeRepo *repository.DisputeRepository
-	ratingRepo  *repository.RatingRepository
+	threadRepo  ThreadRepository
+	messageRepo MessageRepository
+	disputeRepo DisputeRepository
+	ratingRepo  RatingRepository
 	eventBus    events.EventBus
 }
 
 func NewCollaborationService(
-	threadRepo *repository.ThreadRepository,
-	messageRepo *repository.MessageRepository,
-	disputeRepo *repository.DisputeRepository,
-	ratingRepo *repository.RatingRepository,
+	threadRepo ThreadRepository,
+	messageRepo MessageRepository,
+	disputeRepo DisputeRepository,
+	ratingRepo RatingRepository,
 	eventBus events.EventBus,
 ) *CollaborationService {
 	return &CollaborationService{

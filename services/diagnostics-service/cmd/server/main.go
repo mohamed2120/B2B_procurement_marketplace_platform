@@ -12,6 +12,7 @@ import (
 	"github.com/b2b-platform/shared/health"
 	"github.com/b2b-platform/shared/observability"
 	"github.com/b2b-platform/shared/middleware"
+	"github.com/b2b-platform/shared/redis"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,11 @@ func main() {
 		log.Fatalf("Failed to create schema: %v", err)
 	}
 
+	redisClient, err := redis.GetRedisClient()
+	if err != nil {
+		log.Printf("Warning: Failed to connect to Redis: %v", err)
+	}
+
 	// Initialize logger
 	logger := observability.NewLogger("diagnostics-service")
 
@@ -42,13 +48,19 @@ func main() {
 
 	
 	// Health endpoints
-	healthChecker := health.NewHealthChecker("diagnostics-service", db, nil)
+	if redisClient == nil {
+		redisClient, err = redis.GetRedisClient()
+		if err != nil {
+			log.Printf("Warning: still cannot connect Redis for readiness: %v", err)
+		}
+	}
+	healthChecker := health.NewHealthChecker("diagnostics-service", db, redisClient)
 	r.GET("/health", healthChecker.Health)
 	r.GET("/ready", healthChecker.Ready)
 
 	// Configure CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3002"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"*"}
 	config.AllowCredentials = true

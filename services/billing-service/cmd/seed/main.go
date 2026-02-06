@@ -25,7 +25,6 @@ func main() {
 
 	tenantID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	supplierID := uuid.MustParse("00000000-0000-0000-0000-000000000003")
-	userID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
 
 	// Create a plan
 	plan := &models.Plan{

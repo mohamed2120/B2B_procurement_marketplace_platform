@@ -140,10 +140,17 @@ func (m *MockRatingRepository) Create(rating *models.Rating) error {
 	return nil
 }
 
+func (m *MockRatingRepository) GetByID(id uuid.UUID) (*models.Rating, error) {
+	if rating, ok := m.ratings[id]; ok {
+		return rating, nil
+	}
+	return nil, nil
+}
+
 func (m *MockRatingRepository) GetByEntity(entityType string, entityID uuid.UUID) ([]models.Rating, error) {
 	var result []models.Rating
 	for _, rating := range m.ratings {
-		if rating.EntityType == entityType && rating.EntityID == entityID {
+		if rating.RatedEntityType == entityType && rating.RatedEntityID == entityID {
 			result = append(result, *rating)
 		}
 	}
@@ -154,8 +161,8 @@ func (m *MockRatingRepository) GetAverageRating(entityType string, entityID uuid
 	var sum float64
 	var count int
 	for _, rating := range m.ratings {
-		if rating.EntityType == entityType && rating.EntityID == entityID {
-			sum += float64(rating.Score)
+		if rating.RatedEntityType == entityType && rating.RatedEntityID == entityID {
+			sum += float64(rating.Rating)
 			count++
 		}
 	}
@@ -190,6 +197,10 @@ func (m *MockEventBus) Subscribe(ctx interface{}, eventType events.EventType, ha
 	return nil
 }
 
+func (m *MockEventBus) SubscribeAll(ctx interface{}, handler func(*events.EventEnvelope) error) error {
+	return nil
+}
+
 func TestCollaborationService_SendMessage_PublishesEvent(t *testing.T) {
 	mockThreadRepo := &MockThreadRepository{}
 	mockMessageRepo := &MockMessageRepository{}
@@ -205,7 +216,7 @@ func TestCollaborationService_SendMessage_PublishesEvent(t *testing.T) {
 		ID:       uuid.New(),
 		ThreadID: threadID,
 		SenderID: senderID,
-		Content:  "Test message",
+		Message:  "Test message",
 	}
 
 	err := service.SendMessage(message)
@@ -243,11 +254,14 @@ func TestCollaborationService_CreateDispute(t *testing.T) {
 
 	tenantID := uuid.New()
 	dispute := &models.Dispute{
-		ID:       uuid.New(),
-		TenantID: tenantID,
-		Type:     "order",
-		Status:   "open",
-		Reason:   "Product not as described",
+		ID:          uuid.New(),
+		TenantID:    tenantID,
+		OrderID:     uuid.New(),
+		DisputeType: "quality",
+		Status:      "open",
+		Title:       "Order issue",
+		Description: "Product not as described",
+		RaisedBy:    uuid.New(),
 	}
 
 	err := service.CreateDispute(dispute)
@@ -260,8 +274,8 @@ func TestCollaborationService_CreateDispute(t *testing.T) {
 	if created == nil {
 		t.Errorf("expected dispute to be created")
 	}
-	if created.Reason != "Product not as described" {
-		t.Errorf("expected reason 'Product not as described', got %s", created.Reason)
+	if created.Description != "Product not as described" {
+		t.Errorf("expected description 'Product not as described', got %s", created.Description)
 	}
 }
 
@@ -309,11 +323,11 @@ func TestCollaborationService_CreateRating(t *testing.T) {
 
 	entityID := uuid.New()
 	rating := &models.Rating{
-		ID:         uuid.New(),
-		EntityType: "supplier",
-		EntityID:   entityID,
-		Score:      5,
-		Comment:    "Great service!",
+		ID:              uuid.New(),
+		RatedEntityType: "supplier",
+		RatedEntityID:   entityID,
+		Rating:          5,
+		Comment:         "Great service!",
 	}
 
 	err := service.CreateRating(rating)
@@ -326,8 +340,8 @@ func TestCollaborationService_CreateRating(t *testing.T) {
 	if len(ratings) != 1 {
 		t.Errorf("expected 1 rating, got %d", len(ratings))
 	}
-	if ratings[0].Score != 5 {
-		t.Errorf("expected score 5, got %d", ratings[0].Score)
+	if ratings[0].Rating != 5 {
+		t.Errorf("expected rating 5, got %d", ratings[0].Rating)
 	}
 }
 
@@ -342,16 +356,16 @@ func TestCollaborationService_GetAverageRating(t *testing.T) {
 
 	entityID := uuid.New()
 	rating1 := &models.Rating{
-		ID:         uuid.New(),
-		EntityType: "supplier",
-		EntityID:   entityID,
-		Score:      4,
+		ID:              uuid.New(),
+		RatedEntityType: "supplier",
+		RatedEntityID:   entityID,
+		Rating:          4,
 	}
 	rating2 := &models.Rating{
-		ID:         uuid.New(),
-		EntityType: "supplier",
-		EntityID:   entityID,
-		Score:      5,
+		ID:              uuid.New(),
+		RatedEntityType: "supplier",
+		RatedEntityID:   entityID,
+		Rating:          5,
 	}
 	mockRatingRepo.Create(rating1)
 	mockRatingRepo.Create(rating2)

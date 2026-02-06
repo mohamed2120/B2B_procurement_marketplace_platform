@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { apiClients } from '@/lib/api';
 import Card from '@/components/ui/Card';
+import Link from 'next/link';
 
 export default function CustomerRFQ() {
   const [rfqs, setRFQs] = useState<any[]>([]);
@@ -42,7 +43,9 @@ export default function CustomerRFQ() {
                   <h3 className="font-semibold text-lg">{rfq.rfq_number}</h3>
                   <p className="text-gray-600 text-sm mt-1">Status: {rfq.status}</p>
                 </div>
-                <button className="text-primary-600 hover:text-primary-700">View →</button>
+                <Link href={`/app/customer/rfq/${rfq.id}`}>
+                  <button className="text-primary-600 hover:text-primary-700">View →</button>
+                </Link>
               </div>
             </Card>
           ))}

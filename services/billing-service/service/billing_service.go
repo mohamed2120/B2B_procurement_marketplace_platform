@@ -4,20 +4,33 @@ import (
 	"time"
 
 	"github.com/b2b-platform/billing-service/models"
-	"github.com/b2b-platform/billing-service/repository"
 	"github.com/b2b-platform/shared/events"
 	"github.com/google/uuid"
 )
 
+type PlanRepository interface {
+	Create(plan *models.Plan) error
+	GetByID(id uuid.UUID) (*models.Plan, error)
+	GetByCode(code string) (*models.Plan, error)
+	List() ([]models.Plan, error)
+}
+
+type SubscriptionRepository interface {
+	Create(subscription *models.Subscription) error
+	GetByID(id uuid.UUID) (*models.Subscription, error)
+	GetByTenant(tenantID uuid.UUID) (*models.Subscription, error)
+	Cancel(subscriptionID uuid.UUID) error
+}
+
 type BillingService struct {
-	planRepo         *repository.PlanRepository
-	subscriptionRepo *repository.SubscriptionRepository
+	planRepo         PlanRepository
+	subscriptionRepo SubscriptionRepository
 	eventBus         events.EventBus
 }
 
 func NewBillingService(
-	planRepo *repository.PlanRepository,
-	subscriptionRepo *repository.SubscriptionRepository,
+	planRepo PlanRepository,
+	subscriptionRepo SubscriptionRepository,
 	eventBus events.EventBus,
 ) *BillingService {
 	return &BillingService{

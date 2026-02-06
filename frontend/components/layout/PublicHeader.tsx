@@ -3,10 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
+import { useState, useEffect } from 'react';
 
 export default function PublicHeader() {
   const pathname = usePathname();
-  const authenticated = isAuthenticated();
+  const [authenticated, setAuthenticated] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setAuthenticated(isAuthenticated());
+  }, []);
 
   return (
     <header className="bg-white shadow-sm">
@@ -51,8 +58,24 @@ export default function PublicHeader() {
               Contact
             </Link>
           </nav>
-            <div className="flex items-center space-x-4">
-            {authenticated ? (
+          <div className="flex items-center space-x-4">
+            {!mounted ? (
+              // Show default state during SSR to match initial client render
+              <>
+                <Link
+                  href="/login"
+                  className="text-gray-700 hover:text-primary-600"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+                >
+                  Get Started
+                </Link>
+              </>
+            ) : authenticated ? (
               <Link
                 href="/app"
                 className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"

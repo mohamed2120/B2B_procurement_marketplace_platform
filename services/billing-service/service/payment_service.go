@@ -6,28 +6,59 @@ import (
 	"time"
 
 	"github.com/b2b-platform/billing-service/models"
-	"github.com/b2b-platform/billing-service/repository"
 	"github.com/b2b-platform/shared/events"
 	"github.com/google/uuid"
 )
 
+type PaymentRepository interface {
+	Create(payment *models.Payment) error
+	GetByID(id uuid.UUID) (*models.Payment, error)
+	GetByPaymentIntentID(paymentIntentID string) (*models.Payment, error)
+	GetByOrderID(orderID uuid.UUID) (*models.Payment, error)
+	Update(payment *models.Payment) error
+	List(tenantID uuid.UUID, limit, offset int) ([]models.Payment, error)
+}
+
+type EscrowRepository interface {
+	Create(hold *models.EscrowHold) error
+	GetByID(id uuid.UUID) (*models.EscrowHold, error)
+	GetByPaymentID(paymentID uuid.UUID) (*models.EscrowHold, error)
+	GetByOrderID(orderID uuid.UUID) (*models.EscrowHold, error)
+	Update(hold *models.EscrowHold) error
+	ListPendingRelease(tenantID uuid.UUID) ([]models.EscrowHold, error)
+	ListBySupplier(supplierID uuid.UUID, limit, offset int) ([]models.EscrowHold, error)
+}
+
+type SettlementRepository interface {
+	Create(settlement *models.Settlement) error
+	Update(settlement *models.Settlement) error
+}
+
+type RefundRepository interface {
+	Create(refund *models.Refund) error
+}
+
+type PayoutRepository interface {
+	GetDefaultBySupplierID(supplierID uuid.UUID) (*models.PayoutAccount, error)
+}
+
 type PaymentService struct {
-	paymentRepo    *repository.PaymentRepository
-	escrowRepo     *repository.EscrowRepository
-	settlementRepo *repository.SettlementRepository
-	refundRepo     *repository.RefundRepository
-	payoutRepo     *repository.PayoutRepository
+	paymentRepo    PaymentRepository
+	escrowRepo     EscrowRepository
+	settlementRepo SettlementRepository
+	refundRepo     RefundRepository
+	payoutRepo     PayoutRepository
 	provider       PaymentProvider
 	eventBus       events.EventBus
 	orderClient    *OrderClient
 }
 
 func NewPaymentService(
-	paymentRepo *repository.PaymentRepository,
-	escrowRepo *repository.EscrowRepository,
-	settlementRepo *repository.SettlementRepository,
-	refundRepo *repository.RefundRepository,
-	payoutRepo *repository.PayoutRepository,
+	paymentRepo PaymentRepository,
+	escrowRepo EscrowRepository,
+	settlementRepo SettlementRepository,
+	refundRepo RefundRepository,
+	payoutRepo PayoutRepository,
 	provider PaymentProvider,
 	eventBus events.EventBus,
 ) *PaymentService {

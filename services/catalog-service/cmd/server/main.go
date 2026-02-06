@@ -55,9 +55,11 @@ func main() {
 
 	
 	// Health endpoints
-	var redisClient *redis.Client
 	if redisClient == nil {
-		redisClient, _ = redis.GetRedisClient()
+		redisClient, err = redis.GetRedisClient()
+		if err != nil {
+			log.Printf("Warning: still cannot connect Redis for readiness: %v", err)
+		}
 	}
 	healthChecker := health.NewHealthChecker("catalog-service", db, redisClient)
 	r.GET("/health", healthChecker.Health)
@@ -65,7 +67,7 @@ func main() {
 
 	// Configure CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3002"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"*"}
 	config.AllowCredentials = true
@@ -82,8 +84,6 @@ func main() {
 
 	// Add error handler middleware
 	r.Use(middleware.ErrorHandler(diagnosticsReporter, "catalog-service"))
-
-		})
 
 	api := r.Group("/api/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))

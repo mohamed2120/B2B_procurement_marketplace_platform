@@ -33,6 +33,7 @@ services:
       start_period: 30s
 
   opensearch:
+    profiles: ["search"]
     image: opensearchproject/opensearch:2.11.0
     container_name: b2b-opensearch
     environment:
@@ -96,7 +97,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8001/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8001/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -128,10 +129,11 @@ services:
       identity-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8002/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8002/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   catalog-service:
     build:
@@ -156,10 +158,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      opensearch:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8003/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8003/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -188,10 +188,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8004/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8004/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   marketplace-service:
     build:
@@ -222,7 +223,7 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8005/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8005/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -254,10 +255,11 @@ services:
       billing-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8006/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8006/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   logistics-service:
     build:
@@ -282,7 +284,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8007/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8007/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -317,10 +319,11 @@ services:
       minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8008/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8008/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   notification-service:
     build:
@@ -345,7 +348,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8009/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8009/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -374,10 +377,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8010/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8010/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   virtual-warehouse-service:
     build:
@@ -402,13 +406,14 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8011/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8011/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
 
   search-indexer-service:
+    profiles: ["search"]
     build:
       context: .
       dockerfile: services/search-indexer-service/Dockerfile
@@ -426,7 +431,7 @@ services:
       opensearch:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8012/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8012/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -452,7 +457,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8013/ready"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8013/ready || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -476,7 +481,7 @@ services:
       - NEXT_PUBLIC_COLLABORATION_SERVICE_URL=http://localhost:8008
       - NEXT_PUBLIC_NOTIFICATION_SERVICE_URL=http://localhost:8009
     ports:
-      - "3000:3000"
+      - "3002:3000"
     depends_on:
       identity-service:
         condition: service_started

@@ -101,6 +101,10 @@ func (m *MockEventBus) Subscribe(ctx interface{}, eventType events.EventType, ha
 	return nil
 }
 
+func (m *MockEventBus) SubscribeAll(ctx interface{}, handler func(*events.EventEnvelope) error) error {
+	return nil
+}
+
 func TestBillingService_CreatePlan(t *testing.T) {
 	mockPlanRepo := &MockPlanRepository{}
 	mockSubRepo := &MockSubscriptionRepository{}

@@ -58,16 +58,23 @@ func main() {
 	r := gin.Default()
 
 	// Health endpoints (must be before middleware to avoid auth)
+	if redisClient == nil {
+		redisClient, err = redis.GetRedisClient()
+		if err != nil {
+			log.Printf("Warning: still cannot connect Redis for readiness: %v", err)
+		}
+	}
 	healthChecker := health.NewHealthChecker("identity-service", db, redisClient)
 	r.GET("/health", healthChecker.Health)
 	r.GET("/ready", healthChecker.Ready)
 
 	// Configure CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3002"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
-	config.AllowHeaders = []string{"*"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-Tenant-ID", "X-Request-Id"}
 	config.AllowCredentials = true
+	config.AllowWildcard = false
 	r.Use(cors.New(config))
 
 	// Add logging middleware

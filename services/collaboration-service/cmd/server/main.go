@@ -9,12 +9,12 @@ import (
 	"github.com/b2b-platform/collaboration-service/repository"
 	"github.com/b2b-platform/collaboration-service/service"
 	"github.com/b2b-platform/shared/auth"
+	"github.com/b2b-platform/shared/database"
 	"github.com/b2b-platform/shared/diagnostics"
+	"github.com/b2b-platform/shared/events"
 	"github.com/b2b-platform/shared/health"
 	"github.com/b2b-platform/shared/middleware"
 	"github.com/b2b-platform/shared/observability"
-	"github.com/b2b-platform/shared/database"
-	"github.com/b2b-platform/shared/events"
 	"github.com/b2b-platform/shared/redis"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -53,11 +53,12 @@ func main() {
 
 	r := gin.Default()
 
-	
 	// Health endpoints
-	var redisClient *redis.Client
 	if redisClient == nil {
-		redisClient, _ = redis.GetRedisClient()
+		redisClient, err = redis.GetRedisClient()
+		if err != nil {
+			log.Printf("Warning: still cannot connect Redis for readiness: %v", err)
+		}
 	}
 	healthChecker := health.NewHealthChecker("collaboration-service", db, redisClient)
 	r.GET("/health", healthChecker.Health)
@@ -65,7 +66,7 @@ func main() {
 
 	// Configure CORS
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3002"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"*"}
 	config.AllowCredentials = true
@@ -83,7 +84,6 @@ func main() {
 	// Add error handler middleware
 	r.Use(middleware.ErrorHandler(diagnosticsReporter, "collaboration-service"))
 
-	
 	api := r.Group("/api/v1")
 	api.Use(auth.AuthMiddleware(auth.NewJWTService()))
 	api.Use(auth.TenantMiddleware())
@@ -92,11 +92,11 @@ func main() {
 		api.GET("/threads", collaborationHandler.ListThreads)
 		api.GET("/threads/user", collaborationHandler.GetUserThreads)
 		api.POST("/threads", collaborationHandler.CreateThread)
-		
+
 		// Message endpoints (must come before /threads/:id to avoid route conflict)
 		api.GET("/threads/:id/messages", collaborationHandler.GetThreadMessages)
 		api.POST("/threads/:id/messages", collaborationHandler.SendMessage)
-		
+
 		// Single thread endpoint (must come after messages routes)
 		api.GET("/threads/:id", collaborationHandler.GetThread)
 

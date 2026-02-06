@@ -26,10 +26,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If accessing login/register with a token, redirect to app
-  if ((pathname === '/login' || pathname === '/register') && token) {
-    return NextResponse.redirect(new URL('/app', request.url));
-  }
+  // Allow access to login/register pages even if authenticated
+  // (users might want to switch accounts or logout)
+  // The login page itself will handle redirecting if needed
 
   return NextResponse.next();
 }

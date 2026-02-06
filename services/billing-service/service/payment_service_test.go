@@ -6,27 +6,8 @@ import (
 	"time"
 
 	"github.com/b2b-platform/billing-service/models"
-	"github.com/b2b-platform/billing-service/repository"
-	"github.com/b2b-platform/shared/events"
 	"github.com/google/uuid"
 )
-
-// MockEventBus for testing
-type MockEventBus struct {
-	publishedEvents []*events.EventEnvelope
-}
-
-func (m *MockEventBus) Publish(ctx interface{}, event *events.EventEnvelope) error {
-	if m.publishedEvents == nil {
-		m.publishedEvents = make([]*events.EventEnvelope, 0)
-	}
-	m.publishedEvents = append(m.publishedEvents, event)
-	return nil
-}
-
-func (m *MockEventBus) Subscribe(ctx interface{}, eventType events.EventType, handler func(*events.EventEnvelope) error) error {
-	return nil
-}
 
 // MockPaymentRepository for testing
 type MockPaymentRepository struct {
@@ -314,9 +295,11 @@ func TestPaymentService_CreatePaymentIntent_ESCROW(t *testing.T) {
 
 	tenantID := uuid.New()
 	orderID := uuid.New()
+	supplierID := uuid.New()
 
 	req := CreatePaymentIntentRequest{
 		OrderID:     orderID,
+		SupplierID:  supplierID,
 		Amount:      1000.00,
 		Currency:    "USD",
 		PaymentMode: "ESCROW",

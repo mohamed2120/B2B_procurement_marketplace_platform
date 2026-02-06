@@ -1,4 +1,4 @@
-.PHONY: help dev-up dev-down migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check verify verify-logs
+.PHONY: help dev-up dev-up-search dev-down migrate-service migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check verify verify-logs
 
 help:
 	@echo "Available commands:"
@@ -9,8 +9,9 @@ help:
 	@echo "  make health-check        - Check health of all backend services"
 	@echo "  make verify              - Full verification: build, start, test, and verify everything"
 	@echo "  make verify-logs         - Dump logs for failing services"
-	@echo "  make dev-up              - Start infrastructure services only"
-	@echo "  make dev-down            - Stop infrastructure services"
+	@echo "  make dev-up              - Start all services WITHOUT search (OpenSearch optional)"
+	@echo "  make dev-up-search       - Start all services WITH search profile (OpenSearch enabled)"
+	@echo "  make dev-down            - Stop all services"
 	@echo "  make migrate-all         - Run all database migrations"
 	@echo "  make seed-all            - Seed all databases with test data"
 	@echo "  make test                - Run all unit tests"
@@ -19,12 +20,13 @@ help:
 	@echo "  make clean               - Clean up generated files"
 
 up-all:
-	@echo "Starting ALL services (infrastructure + backend + frontend)..."
+	@echo "Starting ALL services (infrastructure + backend + frontend) WITHOUT search..."
 	@docker compose -f docker-compose.all.yml up -d --build
 	@echo "Waiting for services to be ready..."
 	@sleep 10
-	@echo "Services started. Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."
-	@echo "Frontend: http://localhost:3000"
+	@echo "Services started (without OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."
+	@echo "Frontend: http://localhost:3002"
+	@echo "Note: Search features will show 'temporarily unavailable'. Use 'make dev-up-search' to enable search."
 	@echo "Check status: docker compose -f docker-compose.all.yml ps"
 
 down-all:
@@ -61,7 +63,7 @@ health-check:
 	@curl -f -s -X GET http://localhost:8013/health > /dev/null 2>&1 && echo "✅ diagnostics-service (port 8013): OK" || echo "❌ diagnostics-service (port 8013): FAIL"
 	@echo ""
 	@echo "Frontend check:"
-	@curl -f -s http://localhost:3000 > /dev/null 2>&1 && echo "✅ frontend (port 3000): OK" || echo "❌ frontend (port 3000): FAIL"
+	@curl -f -s http://localhost:3002 > /dev/null 2>&1 && echo "✅ frontend (port 3002): OK" || echo "❌ frontend (port 3002): FAIL"
 
 verify:
 	@echo "=========================================="
@@ -116,32 +118,46 @@ verify-logs:
 	@python3 scripts/collect_failure_logs.py
 
 dev-up:
-	@echo "Starting all services..."
-	docker-compose -f deployments/docker-compose.yml up -d
+	@echo "Starting all services WITHOUT search (OpenSearch disabled)..."
+	@docker compose -f docker-compose.all.yml up -d --build
 	@echo "Waiting for services to be ready..."
-	@sleep 5
-	@echo "Services started. Run 'make migrate-all' to set up databases."
+	@sleep 10
+	@echo "Services started (without OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."
+	@echo "Frontend: http://localhost:3002"
+	@echo "Note: Search features will show 'temporarily unavailable'"
+	@echo "Check status: docker compose -f docker-compose.all.yml ps"
+
+dev-up-search:
+	@echo "Starting all services WITH search profile (OpenSearch enabled)..."
+	@docker compose -f docker-compose.all.yml --profile search up -d --build
+	@echo "Waiting for services to be ready..."
+	@sleep 10
+	@echo "Services started (with OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."
+	@echo "Frontend: http://localhost:3002"
+	@echo "Check status: docker compose -f docker-compose.all.yml ps"
 
 dev-down:
 	@echo "Stopping all services..."
-	docker-compose -f deployments/docker-compose.yml down
+	@docker compose -f docker-compose.all.yml down
+
+migrate-service:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Error: SERVICE variable is required. Usage: make migrate-service SERVICE=<service-name>"; \
+		exit 1; \
+	fi
+	@echo "Running migrations for service: $(SERVICE)..."
+	@cd tools/migrate && go run main.go --service $(SERVICE) || exit 1
+	@echo "✅ Migrations completed for $(SERVICE)"
 
 migrate-all:
 	@echo "Running migrations for all services..."
-	@cd services/identity-service && go run cmd/migrate/main.go
-	@cd services/company-service && go run cmd/migrate/main.go
-	@cd services/catalog-service && go run cmd/migrate/main.go
-	@cd services/equipment-service && go run cmd/migrate/main.go
-	@cd services/marketplace-service && go run cmd/migrate/main.go
-	@cd services/procurement-service && go run cmd/migrate/main.go
-	@cd services/logistics-service && go run cmd/migrate/main.go
-	@cd services/collaboration-service && go run cmd/migrate/main.go
-	@cd services/notification-service && go run cmd/migrate/main.go
-	@cd services/billing-service && go run cmd/migrate/main.go
-	@cd services/virtual-warehouse-service && go run cmd/migrate/main.go
-	@cd services/search-indexer-service && go run cmd/migrate/main.go
-	@cd services/diagnostics-service && go run cmd/migrate/main.go
-	@echo "All migrations completed."
+	@for service in identity company catalog equipment marketplace procurement logistics collaboration notification billing virtual-warehouse diagnostics; do \
+		echo ""; \
+		echo "=== Migrating $$service-service ==="; \
+		$(MAKE) migrate-service SERVICE=$$service-service || exit 1; \
+	done
+	@echo ""
+	@echo "✅ All migrations completed successfully!"
 
 seed-all:
 	@echo "Seeding all databases..."
