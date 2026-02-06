@@ -56,6 +56,7 @@ health-check:
 	@curl -f -s -X GET http://localhost:8010/health > /dev/null 2>&1 && echo "✅ billing-service (port 8010): OK" || echo "❌ billing-service (port 8010): FAIL"
 	@curl -f -s -X GET http://localhost:8011/health > /dev/null 2>&1 && echo "✅ virtual-warehouse-service (port 8011): OK" || echo "❌ virtual-warehouse-service (port 8011): FAIL"
 	@curl -f -s -X GET http://localhost:8012/health > /dev/null 2>&1 && echo "✅ search-indexer-service (port 8012): OK" || echo "❌ search-indexer-service (port 8012): FAIL"
+	@curl -f -s -X GET http://localhost:8013/health > /dev/null 2>&1 && echo "✅ diagnostics-service (port 8013): OK" || echo "❌ diagnostics-service (port 8013): FAIL"
 	@echo ""
 	@echo "Frontend check:"
 	@curl -f -s http://localhost:3000 > /dev/null 2>&1 && echo "✅ frontend (port 3000): OK" || echo "❌ frontend (port 3000): FAIL"
@@ -84,6 +85,8 @@ migrate-all:
 	@cd services/notification-service && go run cmd/migrate/main.go
 	@cd services/billing-service && go run cmd/migrate/main.go
 	@cd services/virtual-warehouse-service && go run cmd/migrate/main.go
+	@cd services/search-indexer-service && go run cmd/migrate/main.go
+	@cd services/diagnostics-service && go run cmd/migrate/main.go
 	@echo "All migrations completed."
 
 seed-all:
