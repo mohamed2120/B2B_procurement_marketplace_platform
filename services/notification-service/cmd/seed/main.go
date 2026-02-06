@@ -22,6 +22,7 @@ func main() {
 
 	tenantID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	userID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	_ = userID // Used in preference and notification creation
 
 	// Create templates
 	templates := []models.NotificationTemplate{
@@ -108,6 +109,7 @@ func main() {
 		Type:     "order_placed",
 		Title:    "New Order Placed",
 		Message:  "Order PO-001 has been placed successfully",
+		Data:     "{}", // Valid JSON for JSONB field
 		Status:   "sent",
 	}
 

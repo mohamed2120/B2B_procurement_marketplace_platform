@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS billing.entitlements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plan_id UUID NOT NULL REFERENCES billing.plans(id) ON DELETE CASCADE,
     feature VARCHAR(100) NOT NULL,
-    limit INTEGER,
+    "limit" INTEGER,
     unit VARCHAR(50),
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
