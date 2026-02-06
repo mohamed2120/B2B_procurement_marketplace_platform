@@ -1,7 +1,6 @@
 package diagnostics
 
 import (
-	"database/sql"
 	"encoding/json"
 	"time"
 
