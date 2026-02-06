@@ -1,6 +1,6 @@
 'use client';
 
-import PublicHeader from '@/components/layout/PublicHeader';
+import PublicLayout from '@/components/layout/PublicLayout';
 import Link from 'next/link';
 
 export default function Pricing() {
@@ -54,9 +54,7 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <PublicHeader />
-      
+    <PublicLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Pricing Plans</h1>

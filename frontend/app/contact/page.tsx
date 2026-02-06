@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import PublicHeader from '@/components/layout/PublicHeader';
+import PublicLayout from '@/components/layout/PublicLayout';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -19,9 +19,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <PublicHeader />
-      
+    <PublicLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Contact Us</h1>
         
