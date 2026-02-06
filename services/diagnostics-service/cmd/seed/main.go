@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"time"
 
 	"github.com/b2b-platform/diagnostics-service/models"
 	"github.com/b2b-platform/shared/database"
-	"gorm.io/gorm"
 )
 
 func main() {
