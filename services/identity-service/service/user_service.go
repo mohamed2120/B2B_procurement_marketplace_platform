@@ -41,3 +41,11 @@ func (s *UserService) AssignRole(userID, roleID, tenantID uuid.UUID) error {
 func (s *UserService) GetUserRoles(userID, tenantID uuid.UUID) ([]models.Role, error) {
 	return s.userRepo.GetUserRoles(userID, tenantID)
 }
+
+func (s *UserService) List(tenantID *uuid.UUID) ([]models.User, error) {
+	return s.userRepo.List(tenantID)
+}
+
+func (s *UserService) ToggleActive(userID uuid.UUID, isActive bool) error {
+	return s.userRepo.ToggleActive(userID, isActive)
+}

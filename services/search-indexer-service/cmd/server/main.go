@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/b2b-platform/search-indexer-service/handlers"
 	"github.com/b2b-platform/search-indexer-service/service"
+	"github.com/b2b-platform/shared/auth"
 	"github.com/b2b-platform/shared/events"
+	"github.com/b2b-platform/shared/health"
 	"github.com/b2b-platform/shared/redis"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -22,25 +26,56 @@ func main() {
 
 	eventBus := events.NewRedisEventBus(redisClient)
 	indexerService := service.NewIndexerService()
+	searchService := service.NewSearchService()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Start health check HTTP server
+	// Setup Gin router
+	r := gin.Default()
+
+	// Configure CORS
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3000", "http://127.0.0.1:3002"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-Tenant-ID", "X-Request-Id"}
+	config.AllowCredentials = true
+	r.Use(cors.New(config))
+
+	// Health endpoints
+	healthChecker := health.NewHealthChecker("search-indexer-service", nil, redisClient)
+	r.GET("/health", healthChecker.Health)
+	r.GET("/ready", healthChecker.Ready)
+
+	// Initialize handlers
+	searchHandler := handlers.NewSearchHandler(searchService)
+
+	// Search API routes (public, but JWT optional for enhanced access)
+	api := r.Group("/api/v1")
+	api.Use(auth.OptionalAuthMiddleware(auth.NewJWTService()))
+	{
+		// Public search endpoint (works without auth, but enhanced with auth)
+		api.GET("/search", searchHandler.Search)
+		api.GET("/search/autocomplete", searchHandler.Autocomplete)
+	}
+
+	// Protected routes (optional - for admin operations like reindex)
+	protected := api.Group("/admin")
+	protected.Use(auth.OptionalAuthMiddleware(auth.NewJWTService()))
+	{
+		// Future: reindex endpoint, stats, etc.
+	}
+
+	// Start HTTP server in goroutine
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8012"
 	}
 
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy","service":"search-indexer-service"}`))
-	})
-
 	go func() {
-		fmt.Printf("Health check server starting on port %s\n", port)
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			log.Printf("Health check server error: %v", err)
+		fmt.Printf("Search indexer service starting on port %s\n", port)
+		if err := r.Run(":" + port); err != nil {
+			log.Fatalf("Failed to start HTTP server: %v", err)
 		}
 	}()
 
@@ -55,7 +90,6 @@ func main() {
 	}()
 
 	// Subscribe to all events
-	fmt.Println("Search indexer service starting...")
 	fmt.Println("Subscribing to events...")
 
 	handler := func(event *events.EventEnvelope) error {

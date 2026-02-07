@@ -58,28 +58,41 @@ func main() {
 	password := "demo123456"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
+	// Create demo users (10 total as required)
 	users := []struct {
 		email     string
 		firstName string
 		lastName  string
 		roleNames []string
+		tenantID  uuid.UUID
 	}{
-		{"admin@demo.com", "Platform", "Admin", []string{"admin"}},
-		{"buyer.requester@demo.com", "Requester", "User", []string{"requester"}},
-		{"buyer.procurement@demo.com", "Procurement", "Manager", []string{"procurement_manager"}},
-		{"supplier@demo.com", "Supplier", "User", []string{"supplier"}},
+		// Platform admin
+		{"admin@demo.com", "Platform", "Admin", []string{"admin"}, demoTenantID},
+		// Buyer tenant users (5 users)
+		{"buyer.requester@demo.com", "Requester", "User", []string{"requester"}, demoTenantID},
+		{"buyer.procurement@demo.com", "Procurement", "Manager", []string{"procurement_manager"}, demoTenantID},
+		{"buyer.user1@demo.com", "Buyer", "User1", []string{"buyer"}, demoTenantID},
+		{"buyer.user2@demo.com", "Buyer", "User2", []string{"requester"}, demoTenantID},
+		{"buyer.approver@demo.com", "Approver", "User", []string{"approver"}, demoTenantID},
+		// Supplier tenant users (4 users)
+		{"supplier@demo.com", "Supplier", "User", []string{"supplier"}, demoTenantID},
+		{"supplier.user1@demo.com", "Supplier", "User1", []string{"supplier"}, demoTenantID},
+		{"supplier.user2@demo.com", "Supplier", "User2", []string{"supplier"}, demoTenantID},
+		{"supplier.manager@demo.com", "Supplier", "Manager", []string{"supplier"}, demoTenantID},
+		// Additional user
+		{"user.test@demo.com", "Test", "User", []string{"requester"}, demoTenantID},
 	}
 
 	for _, u := range users {
 		// Check if user exists
-		_, err := userRepo.GetByEmail(demoTenantID, u.email)
+		_, err := userRepo.GetByEmail(u.tenantID, u.email)
 		if err == nil {
 			fmt.Printf("User %s already exists\n", u.email)
 			continue
 		}
 
 		user := &models.User{
-			TenantID:     demoTenantID,
+			TenantID:     u.tenantID,
 			Email:        u.email,
 			PasswordHash: string(hashedPassword),
 			FirstName:    u.firstName,
@@ -96,7 +109,7 @@ func main() {
 		// Assign roles
 		for _, roleName := range u.roleNames {
 			if roleID, ok := roleMap[roleName]; ok {
-				if err := userRepo.AssignRole(user.ID, roleID, demoTenantID); err != nil {
+				if err := userRepo.AssignRole(user.ID, roleID, u.tenantID); err != nil {
 					log.Printf("Failed to assign role %s to user %s: %v", roleName, u.email, err)
 				}
 			}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
 import { useState, useEffect } from 'react';
+import SearchBar from '@/components/search/SearchBar';
 
 export default function PublicHeader() {
   const pathname = usePathname();
@@ -23,6 +24,9 @@ export default function PublicHeader() {
             <Link href="/" className="text-2xl font-bold text-primary-600">
               B2B Marketplace
             </Link>
+          </div>
+          <div className="flex-1 max-w-md mx-4">
+            <SearchBar />
           </div>
           <nav className="hidden md:flex space-x-8">
             <Link
@@ -48,6 +52,14 @@ export default function PublicHeader() {
               } hover:text-primary-600`}
             >
               Pricing
+            </Link>
+            <Link
+              href="/search"
+              className={`${
+                pathname === '/search' ? 'text-primary-600' : 'text-gray-700'
+              } hover:text-primary-600`}
+            >
+              Search
             </Link>
             <Link
               href="/contact"

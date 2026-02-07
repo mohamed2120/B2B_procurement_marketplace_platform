@@ -41,6 +41,7 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userService, jwtService)
+	userHandler := handlers.NewUserHandler(userService)
 
 	// Initialize Redis for RBAC caching (future use)
 	redisClient, err := redis.GetRedisClient()
@@ -91,10 +92,22 @@ func main() {
 	}
 
 	// Protected routes
-	protected := api.Group("/auth")
+	protected := api.Group("")
 	protected.Use(auth.AuthMiddleware(auth.NewJWTService()))
 	{
-		protected.GET("/validate", authHandler.ValidateToken)
+		// Auth endpoints
+		authGroup := protected.Group("/auth")
+		{
+			authGroup.GET("/validate", authHandler.ValidateToken)
+		}
+
+		// User management endpoints (admin only)
+		usersGroup := protected.Group("/users")
+		{
+			usersGroup.GET("", userHandler.ListUsers)
+			usersGroup.GET("/:id", userHandler.GetUser)
+			usersGroup.PUT("/:id/toggle-active", userHandler.ToggleActive)
+		}
 	}
 
 	port := os.Getenv("PORT")

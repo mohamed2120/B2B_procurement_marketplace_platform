@@ -48,6 +48,57 @@ func (s *IndexerService) HandleEvent(event *events.EventEnvelope) error {
 	}
 }
 
+// Helper functions for safe type conversion
+func getString(payload map[string]interface{}, key string, defaults ...string) string {
+	val, ok := payload[key]
+	if !ok {
+		if len(defaults) > 0 {
+			return defaults[0]
+		}
+		return ""
+	}
+	if str, ok := val.(string); ok {
+		return str
+	}
+	return ""
+}
+
+func getFloat(payload map[string]interface{}, key string) float64 {
+	val, ok := payload[key]
+	if !ok {
+		return 0
+	}
+	if f, ok := val.(float64); ok {
+		return f
+	}
+	return 0
+}
+
+func getInt(payload map[string]interface{}, key string) int {
+	val, ok := payload[key]
+	if !ok {
+		return 0
+	}
+	if i, ok := val.(int); ok {
+		return i
+	}
+	if f, ok := val.(float64); ok {
+		return int(f)
+	}
+	return 0
+}
+
+func getBool(payload map[string]interface{}, key string) bool {
+	val, ok := payload[key]
+	if !ok {
+		return false
+	}
+	if b, ok := val.(bool); ok {
+		return b
+	}
+	return false
+}
+
 func (s *IndexerService) indexPart(event *events.EventEnvelope) error {
 	partID, ok := event.Payload["part_id"].(string)
 	if !ok {
@@ -56,12 +107,23 @@ func (s *IndexerService) indexPart(event *events.EventEnvelope) error {
 
 	indexName := "parts"
 	document := map[string]interface{}{
-		"id":          partID,
-		"part_number": event.Payload["part_number"],
-		"name":        event.Payload["name"],
-		"manufacturer_id": event.Payload["manufacturer_id"],
-		"event_type":  event.Type,
-		"timestamp":   event.Timestamp,
+		"id":              partID,
+		"type":            "part",
+		"part_number":     getString(event.Payload, "part_number"),
+		"manufacturer_code": getString(event.Payload, "manufacturer_code"),
+		"name":            getString(event.Payload, "name"),
+		"description":     getString(event.Payload, "description"),
+		"manufacturer":    getString(event.Payload, "manufacturer"),
+		"manufacturer_id": getString(event.Payload, "manufacturer_id"),
+		"category":        getString(event.Payload, "category"),
+		"visibility":      getString(event.Payload, "visibility", "public"),
+		"status":          getString(event.Payload, "status", "approved"),
+		"company_status":  getString(event.Payload, "company_status", "approved"),
+		"price":           getFloat(event.Payload, "price"),
+		"currency":        getString(event.Payload, "currency"),
+		"stock":           getInt(event.Payload, "stock"),
+		"rating":          getFloat(event.Payload, "rating"),
+		"timestamp":      event.Timestamp,
 	}
 
 	return s.indexDocument(indexName, partID, document)
@@ -75,11 +137,15 @@ func (s *IndexerService) indexCompany(event *events.EventEnvelope) error {
 
 	indexName := "companies"
 	document := map[string]interface{}{
-		"id":        companyID,
-		"name":      event.Payload["name"],
-		"subdomain": event.Payload["subdomain"],
-		"event_type": event.Type,
-		"timestamp": event.Timestamp,
+		"id":             companyID,
+		"type":           "company",
+		"name":           getString(event.Payload, "name"),
+		"subdomain":      getString(event.Payload, "subdomain"),
+		"visibility":     getString(event.Payload, "visibility", "public"),
+		"status":         getString(event.Payload, "status", "approved"),
+		"company_status": getString(event.Payload, "company_status", "approved"),
+		"rating":         getFloat(event.Payload, "rating"),
+		"timestamp":      event.Timestamp,
 	}
 
 	return s.indexDocument(indexName, companyID, document)
@@ -159,6 +225,70 @@ func (s *IndexerService) indexShipment(event *events.EventEnvelope) error {
 	return s.indexDocument(indexName, shipmentID, document)
 }
 
+// indexEquipment indexes equipment documents (called when equipment events are published)
+func (s *IndexerService) indexEquipment(event *events.EventEnvelope) error {
+	equipmentID, ok := event.Payload["equipment_id"].(string)
+	if !ok {
+		return fmt.Errorf("equipment_id not found in event payload")
+	}
+
+	indexName := "equipment"
+	document := map[string]interface{}{
+		"id":             equipmentID,
+		"type":           "equipment",
+		"model":          getString(event.Payload, "model"),
+		"series":         getString(event.Payload, "series"),
+		"name":           getString(event.Payload, "name"),
+		"description":    getString(event.Payload, "description"),
+		"manufacturer":   getString(event.Payload, "manufacturer"),
+		"manufacturer_id": getString(event.Payload, "manufacturer_id"),
+		"category":       getString(event.Payload, "category"),
+		"visibility":     getString(event.Payload, "visibility", "public"),
+		"status":         getString(event.Payload, "status", "approved"),
+		"company_status": getString(event.Payload, "company_status", "approved"),
+		"price":          getFloat(event.Payload, "price"),
+		"currency":       getString(event.Payload, "currency"),
+		"rating":         getFloat(event.Payload, "rating"),
+		"eta":            getInt(event.Payload, "eta"),
+		"timestamp":      event.Timestamp,
+	}
+
+	return s.indexDocument(indexName, equipmentID, document)
+}
+
+// indexListing indexes marketplace listing documents (called when listing events are published)
+func (s *IndexerService) indexListing(event *events.EventEnvelope) error {
+	listingID, ok := event.Payload["listing_id"].(string)
+	if !ok {
+		return fmt.Errorf("listing_id not found in event payload")
+	}
+
+	indexName := "listings"
+	document := map[string]interface{}{
+		"id":              listingID,
+		"type":            "listing",
+		"title":           getString(event.Payload, "title"),
+		"name":            getString(event.Payload, "name"),
+		"sku":             getString(event.Payload, "sku"),
+		"description":     getString(event.Payload, "description"),
+		"brand":           getString(event.Payload, "brand"),
+		"category":        getString(event.Payload, "category"),
+		"supplier_id":     getString(event.Payload, "supplier_id"),
+		"visibility":      getString(event.Payload, "visibility", "public"),
+		"status":          getString(event.Payload, "status", "approved"),
+		"company_status":  getString(event.Payload, "company_status", "approved"),
+		"price":           getFloat(event.Payload, "price"),
+		"currency":        getString(event.Payload, "currency"),
+		"price_restricted": getBool(event.Payload, "price_restricted"),
+		"stock":           getInt(event.Payload, "stock"),
+		"rating":          getFloat(event.Payload, "rating"),
+		"eta":             getInt(event.Payload, "eta"),
+		"timestamp":       event.Timestamp,
+	}
+
+	return s.indexDocument(indexName, listingID, document)
+}
+
 func (s *IndexerService) indexDocument(indexName, documentID string, document map[string]interface{}) error {
 	// Ensure index exists
 	if err := s.createIndexIfNotExists(indexName); err != nil {
@@ -213,20 +343,9 @@ func (s *IndexerService) createIndexIfNotExists(indexName string) error {
 		return nil
 	}
 
-	// Create index
-	createReq, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(`{
-		"settings": {
-			"number_of_shards": 1,
-			"number_of_replicas": 0
-		},
-		"mappings": {
-			"properties": {
-				"id": {"type": "keyword"},
-				"name": {"type": "text"},
-				"timestamp": {"type": "date"}
-			}
-		}
-	}`)))
+	// Create index with proper mapping
+	mapping := GetIndexMapping(indexName)
+	createReq, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(mapping)))
 	if err != nil {
 		return err
 	}

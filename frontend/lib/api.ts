@@ -16,6 +16,7 @@ const SERVICE_URLS = {
   billing: process.env.NEXT_PUBLIC_BILLING_SERVICE_URL || 'http://localhost:8010',
   marketplace: process.env.NEXT_PUBLIC_MARKETPLACE_SERVICE_URL || 'http://localhost:8005',
   diagnostics: process.env.NEXT_PUBLIC_DIAGNOSTICS_SERVICE_URL || 'http://localhost:8013',
+  search: process.env.NEXT_PUBLIC_SEARCH_SERVICE_URL || 'http://localhost:8012',
 };
 
 function createApiClient(baseURL: string): AxiosInstance {
@@ -71,6 +72,7 @@ export const apiClients = {
   billing: createApiClient(SERVICE_URLS.billing),
   marketplace: createApiClient(SERVICE_URLS.marketplace),
   diagnostics: createApiClient(SERVICE_URLS.diagnostics),
+  search: createApiClient(SERVICE_URLS.search),
 };
 
 export const diagnostics = apiClients.diagnostics;

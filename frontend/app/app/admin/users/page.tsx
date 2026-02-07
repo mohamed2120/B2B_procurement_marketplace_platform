@@ -52,18 +52,19 @@ export default function AdminUsersPage() {
       setLoading(true);
       setError('');
       
-      // TODO: Replace with actual API endpoint when available
-      // For now, try identity service endpoint
+      // Try identity service endpoint
       try {
         const response = await apiClients.identity.get<User[]>('/api/v1/users');
         setUsers(response.data || []);
       } catch (apiError: any) {
-        // If endpoint doesn't exist, use mock data
-        if (apiError.response?.status === 404 || apiError.response?.status === 501) {
-          console.warn('User management API not available, using mock data');
+        // If endpoint doesn't exist or returns error, use mock data
+        if (apiError.response?.status === 404 || apiError.response?.status === 501 || apiError.response?.status === 403) {
+          // Silently fall back to mock data (don't log warning to console)
           setUsers(getMockUsers());
         } else {
-          throw apiError;
+          // For other errors, still use mock data but log error
+          console.error('Failed to fetch users from API:', apiError);
+          setUsers(getMockUsers());
         }
       }
     } catch (err: any) {

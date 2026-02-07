@@ -60,6 +60,23 @@ smoke:
 	@echo "Running smoke tests..."
 	@bash scripts/smoke.sh
 
+reindex:
+	@echo "Reindexing OpenSearch from database..."
+	@echo "This will clear all indexes and rebuild from current data."
+	@echo "Note: This requires events to be replayed or direct DB access."
+	@echo ""
+	@read -p "Are you sure? This will delete all search indexes. (y/N) " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "Clearing indexes..."; \
+		curl -X DELETE "http://localhost:9200/parts,equipment,companies,listings" || echo "Indexes may not exist yet"; \
+		echo ""; \
+		echo "✅ Indexes cleared. New documents will be indexed as events are published."; \
+		echo "   To rebuild from database, you may need to trigger events or use a reindex script."; \
+	else \
+		echo "Cancelled."; \
+	fi
+
 health-check:
 	@echo "Checking health of all backend services..."
 	@echo ""

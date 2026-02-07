@@ -33,7 +33,6 @@ services:
       start_period: 30s
 
   opensearch:
-    profiles: ["search"]
     image: opensearchproject/opensearch:2.11.0
     container_name: b2b-opensearch
     environment:
@@ -413,7 +412,6 @@ services:
       start_period: 30s
 
   search-indexer-service:
-    profiles: ["search"]
     build:
       context: .
       dockerfile: services/search-indexer-service/Dockerfile
@@ -482,6 +480,7 @@ services:
       - NEXT_PUBLIC_LOGISTICS_SERVICE_URL=http://localhost:8007
       - NEXT_PUBLIC_COLLABORATION_SERVICE_URL=http://localhost:8008
       - NEXT_PUBLIC_NOTIFICATION_SERVICE_URL=http://localhost:8009
+      - NEXT_PUBLIC_SEARCH_SERVICE_URL=http://localhost:8012
     ports:
       - "3002:3002"
     depends_on:

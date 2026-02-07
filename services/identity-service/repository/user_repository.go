@@ -51,3 +51,19 @@ func (r *UserRepository) GetUserRoles(userID, tenantID uuid.UUID) ([]models.Role
 		Find(&roles).Error
 	return roles, err
 }
+
+// List all users (admin only - can filter by tenant)
+func (r *UserRepository) List(tenantID *uuid.UUID) ([]models.User, error) {
+	var users []models.User
+	query := r.db.Preload("UserRoles.Role")
+	if tenantID != nil {
+		query = query.Where("tenant_id = ?", *tenantID)
+	}
+	err := query.Find(&users).Error
+	return users, err
+}
+
+// ToggleActive toggles user active status
+func (r *UserRepository) ToggleActive(userID uuid.UUID, isActive bool) error {
+	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("is_active", isActive).Error
+}

@@ -101,3 +101,38 @@ func GetUserID(c *gin.Context) (uuid.UUID, error) {
 
 	return id, nil
 }
+
+// OptionalAuthMiddleware extracts JWT if present but doesn't require it
+// Useful for endpoints that work for both guests and authenticated users
+func OptionalAuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			// No auth header - continue as guest
+			c.Next()
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			// Invalid format - continue as guest
+			c.Next()
+			return
+		}
+
+		claims, err := jwtService.ValidateToken(parts[1])
+		if err != nil {
+			// Invalid token - continue as guest
+			c.Next()
+			return
+		}
+
+		// Valid token - set context values
+		c.Set(UserIDKey, claims.UserID.String())
+		c.Set(TenantIDKey, claims.TenantID.String())
+		c.Set(EmailKey, claims.Email)
+		c.Set(RolesKey, claims.Roles)
+
+		c.Next()
+	}
+}

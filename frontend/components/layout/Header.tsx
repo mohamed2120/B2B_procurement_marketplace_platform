@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSafeRouter } from '@/lib/useSafeRouter';
 import { getUser, logout } from '@/lib/auth';
 import { useState, useEffect } from 'react';
+import SearchBar from '@/components/search/SearchBar';
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -31,6 +32,9 @@ export default function Header() {
             </Link>
           </div>
 
+          <div className="flex-1 max-w-md mx-4">
+            <SearchBar />
+          </div>
           <nav className="hidden md:flex space-x-4">
             <Link href="/app" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary-600">
               Dashboard
