@@ -29,19 +29,37 @@ const USER_KEY = 'auth_user';
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const tenantID = getTenantID();
   
-  const response = await apiClients.identity.post<LoginResponse>('/api/v1/auth/login', {
+  const response = await apiClients.identity.post<any>('/api/v1/auth/login', {
     email,
     password,
     tenant_id: tenantID,
   });
 
+  // Extract roles from user_roles array if present
+  let user = response.data.user;
+  if (user && user.user_roles && Array.isArray(user.user_roles)) {
+    // Extract role names from user_roles array
+    user.roles = user.user_roles.map((ur: any) => {
+      if (ur.role && ur.role.name) {
+        return ur.role.name;
+      }
+      return null;
+    }).filter((r: string | null) => r !== null);
+    // Remove user_roles to avoid confusion
+    delete user.user_roles;
+  }
+
   // Store token and user
   Cookies.set(TOKEN_KEY, response.data.token, { expires: 7 }); // 7 days
   if (typeof window !== 'undefined') {
-    localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
 
-  return response.data;
+  return {
+    token: response.data.token,
+    user: user,
+    expires_at: response.data.expires_at,
+  };
 }
 
 export function logout(): void {

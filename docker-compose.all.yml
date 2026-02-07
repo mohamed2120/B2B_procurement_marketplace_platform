@@ -469,6 +469,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        SERVICE_VERSION: ${SERVICE_VERSION:-unknown}
     container_name: b2b-frontend
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
@@ -481,7 +483,7 @@ services:
       - NEXT_PUBLIC_COLLABORATION_SERVICE_URL=http://localhost:8008
       - NEXT_PUBLIC_NOTIFICATION_SERVICE_URL=http://localhost:8009
     ports:
-      - "3002:3000"
+      - "3002:3002"
     depends_on:
       identity-service:
         condition: service_started
@@ -506,7 +508,7 @@ services:
       virtual-warehouse-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3002 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10

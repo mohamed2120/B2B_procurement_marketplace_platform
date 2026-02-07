@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { apiClients } from '@/lib/api';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
 
 export default function SupplierListings() {
   const [listings, setListings] = useState<any[]>([]);
@@ -28,7 +29,9 @@ export default function SupplierListings() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">My Listings</h1>
-        <Button>Create Listing</Button>
+        <Link href="/app/supplier/listings/create">
+          <Button>Create Listing</Button>
+        </Link>
       </div>
 
       {loading ? (
@@ -36,7 +39,9 @@ export default function SupplierListings() {
       ) : listings.length === 0 ? (
         <Card>
           <p className="text-gray-600 mb-4">No listings yet.</p>
-          <Button>Create Your First Listing</Button>
+          <Link href="/app/supplier/listings/create">
+            <Button>Create Your First Listing</Button>
+          </Link>
         </Card>
       ) : (
         <div className="space-y-4">

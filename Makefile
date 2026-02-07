@@ -1,4 +1,4 @@
-.PHONY: help dev-up dev-up-search dev-down migrate-service migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check verify verify-logs
+.PHONY: help dev-up dev-up-safe dev-up-search dev-down dev-down-safe migrate-service migrate-all seed-all test test-integration run-identity run-company run-catalog run-equipment run-marketplace run-procurement run-logistics run-collaboration run-notification run-billing run-virtual-warehouse run-search-indexer clean up-all down-all logs-all reset-all health-check verify verify-logs
 
 help:
 	@echo "Available commands:"
@@ -10,8 +10,11 @@ help:
 	@echo "  make verify              - Full verification: build, start, test, and verify everything"
 	@echo "  make verify-logs         - Dump logs for failing services"
 	@echo "  make dev-up              - Start all services WITHOUT search (OpenSearch optional)"
+	@echo "  make dev-up-safe         - Start all services with automatic Docker recovery (macOS)"
 	@echo "  make dev-up-search       - Start all services WITH search profile (OpenSearch enabled)"
 	@echo "  make dev-down            - Stop all services"
+	@echo "  make dev-down-safe       - Stop all services with automatic Docker recovery (macOS)"
+	@echo "  make docker-recover      - Restart Docker Desktop on macOS when daemon is dead"
 	@echo "  make migrate-all         - Run all database migrations"
 	@echo "  make seed-all            - Seed all databases with test data"
 	@echo "  make test                - Run all unit tests"
@@ -20,6 +23,10 @@ help:
 	@echo "  make clean               - Clean up generated files"
 
 up-all:
+	@echo "Checking Docker readiness..."
+	@bash scripts/check-docker.sh > /dev/null 2>&1 || (echo "❌ Docker not ready. Run: bash scripts/check-docker.sh" && exit 1)
+	@echo "✅ Docker is ready"
+	@echo ""
 	@echo "Starting ALL services (infrastructure + backend + frontend) WITHOUT search..."
 	@docker compose -f docker-compose.all.yml up -d --build
 	@echo "Waiting for services to be ready..."
@@ -37,6 +44,10 @@ logs-all:
 	@docker compose -f docker-compose.all.yml logs -f
 
 reset-all:
+	@echo "Checking Docker readiness..."
+	@bash scripts/check-docker.sh > /dev/null 2>&1 || (echo "❌ Docker not ready. Run: bash scripts/check-docker.sh" && exit 1)
+	@echo "✅ Docker is ready"
+	@echo ""
 	@echo "Stopping all services and removing volumes..."
 	@docker compose -f docker-compose.all.yml down -v
 	@echo "Starting fresh..."
@@ -44,6 +55,10 @@ reset-all:
 	@echo "Waiting for services to be ready..."
 	@sleep 10
 	@echo "Services restarted. Run 'make migrate-all' to set up databases."
+
+smoke:
+	@echo "Running smoke tests..."
+	@bash scripts/smoke.sh
 
 health-check:
 	@echo "Checking health of all backend services..."
@@ -71,6 +86,10 @@ verify:
 	@echo "=========================================="
 	@echo ""
 	@mkdir -p reports/logs
+	@echo "Step 0/9: Checking Docker readiness..."
+	@bash scripts/check-docker.sh || (echo "❌ FAIL: Docker not ready" && exit 1)
+	@echo "✅ Docker is ready"
+	@echo ""
 	@echo "Step 1/9: Starting all services..."
 	@docker compose -f docker-compose.all.yml up -d --build || (echo "❌ FAIL: Service startup failed" && exit 1)
 	@echo "✅ Services started"
@@ -118,16 +137,73 @@ verify-logs:
 	@python3 scripts/collect_failure_logs.py
 
 dev-up:
-	@echo "Starting all services WITHOUT search (OpenSearch disabled)..."
-	@docker compose -f docker-compose.all.yml up -d --build
-	@echo "Waiting for services to be ready..."
-	@sleep 10
-	@echo "Services started (without OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."
-	@echo "Frontend: http://localhost:3002"
-	@echo "Note: Search features will show 'temporarily unavailable'"
-	@echo "Check status: docker compose -f docker-compose.all.yml ps"
+	@echo "Checking Docker readiness..."
+	@bash scripts/check-docker.sh > /dev/null 2>&1 || (echo "❌ Docker not ready. Run: bash scripts/check-docker.sh" && exit 1)
+	@echo "✅ Docker is ready"
+	@echo ""
+	@echo "Checking service versions..."
+	@bash scripts/check-versions.sh > /tmp/version-check.log 2>&1; \
+	VERSION_CHECK_EXIT=$$?; \
+	cat /tmp/version-check.log; \
+	echo ""; \
+	if [ $$VERSION_CHECK_EXIT -eq 0 ]; then \
+		echo "Services need rebuild. Getting list..."; \
+		SERVICES_TO_BUILD=$$(bash scripts/check-versions.sh --rebuild-list 2>/dev/null); \
+		if [ -n "$$SERVICES_TO_BUILD" ]; then \
+			echo "Building changed services:"; \
+			echo "$$SERVICES_TO_BUILD" | while read service; do \
+				if [ -n "$$service" ] && [ "$$service" != "" ]; then \
+					echo "  - $$service"; \
+				fi; \
+			done; \
+			echo ""; \
+			echo "Building services (this may take a while and use significant memory)..."; \
+			echo "If you get 'cannot allocate memory' errors, increase Docker Desktop memory to at least 8GB"; \
+			echo "$$SERVICES_TO_BUILD" | while read service; do \
+				if [ -n "$$service" ] && [ "$$service" != "" ]; then \
+					echo "Building $$service..."; \
+					VERSION=$$(bash scripts/get-service-version.sh $$service 2>/dev/null || echo "unknown"); \
+					docker compose -f docker-compose.all.yml build --build-arg SERVICE_VERSION=$$VERSION $$service || true; \
+				fi; \
+			done; \
+			SERVICES_LIST=$$(echo "$$SERVICES_TO_BUILD" | tr '\n' ' '); \
+			docker compose -f docker-compose.all.yml up -d $$SERVICES_LIST; \
+			bash scripts/update-container-versions.sh; \
+			echo "Waiting for services to be ready..."; \
+			sleep 10; \
+			echo "Services started (without OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."; \
+			echo "Frontend: http://localhost:3002"; \
+			echo "Note: Search features will show 'temporarily unavailable'"; \
+			echo "Check status: docker compose -f docker-compose.all.yml ps"; \
+		fi; \
+	else \
+		running=$$(docker compose -f docker-compose.all.yml ps --format json 2>/dev/null | grep -c '"State":"running"' || echo "0"); \
+		total=$$(docker compose -f docker-compose.all.yml config --services 2>/dev/null | wc -l | tr -d ' ' || echo "0"); \
+		if [ "$$running" -gt 0 ] && [ "$$running" -ge $$((total / 2)) ]; then \
+			echo "✅ Containers are already running ($$running services)"; \
+			echo "Skipping build/start. Using existing containers."; \
+			echo "To rebuild, run: make dev-down && make dev-up"; \
+		else \
+			echo "Starting all services WITHOUT search (OpenSearch disabled)..."; \
+			echo "Building services (this may take a while and use significant memory)..."; \
+			echo "If you get 'cannot allocate memory' errors, increase Docker Desktop memory to at least 8GB"; \
+			docker compose -f docker-compose.all.yml build; \
+			docker compose -f docker-compose.all.yml up -d; \
+			bash scripts/update-container-versions.sh; \
+			echo "Waiting for services to be ready..."; \
+			sleep 10; \
+			echo "Services started (without OpenSearch). Run 'make migrate-all' to set up databases, then 'make seed-all' for test data."; \
+			echo "Frontend: http://localhost:3002"; \
+			echo "Note: Search features will show 'temporarily unavailable'"; \
+			echo "Check status: docker compose -f docker-compose.all.yml ps"; \
+		fi; \
+	fi
 
 dev-up-search:
+	@echo "Checking Docker readiness..."
+	@bash scripts/check-docker.sh > /dev/null 2>&1 || (echo "❌ Docker not ready. Run: bash scripts/check-docker.sh" && exit 1)
+	@echo "✅ Docker is ready"
+	@echo ""
 	@echo "Starting all services WITH search profile (OpenSearch enabled)..."
 	@docker compose -f docker-compose.all.yml --profile search up -d --build
 	@echo "Waiting for services to be ready..."
@@ -139,6 +215,14 @@ dev-up-search:
 dev-down:
 	@echo "Stopping all services..."
 	@docker compose -f docker-compose.all.yml down
+
+dev-up-safe:
+	@echo "Starting services with automatic Docker recovery (macOS)..."
+	@bash scripts/dev-up-safe.sh
+
+dev-down-safe:
+	@echo "Stopping services with automatic Docker recovery (macOS)..."
+	@bash scripts/dev-down-safe.sh
 
 migrate-service:
 	@if [ -z "$(SERVICE)" ]; then \

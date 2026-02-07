@@ -1,5 +1,8 @@
 FROM golang:1.23-alpine AS builder
 
+# Build argument for service version
+ARG SERVICE_VERSION=unknown
+
 WORKDIR /app
 
 # Copy go mod files
@@ -16,6 +19,12 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/identity-service ./cmd/server/main.go
 
 FROM alpine:latest
+
+# Build argument for service version
+ARG SERVICE_VERSION=unknown
+
+# Add label with service version
+LABEL service.version="${SERVICE_VERSION}"
 
 RUN apk --no-cache add ca-certificates wget wget
 

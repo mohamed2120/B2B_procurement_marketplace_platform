@@ -41,7 +41,7 @@ Edit `.env.local` to configure service URLs if needed.
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3002](http://localhost:3002) in your browser.
 
 ### Build
 
@@ -104,7 +104,7 @@ frontend/
 ### Tenant Resolution
 
 The app automatically detects the tenant from the subdomain:
-- `tenant1.localhost:3000` → tenant1
+- `tenant1.localhost:3002` → tenant1
 - `tenant2.example.com` → tenant2
 - Falls back to default tenant for localhost development
 

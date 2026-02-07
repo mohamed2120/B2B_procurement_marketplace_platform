@@ -36,18 +36,26 @@ export default function AppRouterRedirect() {
           return;
         }
 
+        // Debug: Log user and roles
+        console.log('AppRouterRedirect - User:', user);
+        console.log('AppRouterRedirect - Roles:', user.roles);
+
         // Check roles and redirect
         if (hasRole('admin') || hasRole('super_admin')) {
+          console.log('Redirecting admin to /app/admin/dashboard');
           router.push('/app/admin/dashboard');
         } else if (hasRole('requester') || hasRole('procurement_manager') || hasRole('buyer')) {
+          console.log('Redirecting buyer to /app/customer/dashboard');
           router.push('/app/customer/dashboard');
         } else if (hasRole('supplier')) {
+          console.log('Redirecting supplier to /app/supplier/dashboard');
           router.push('/app/supplier/dashboard');
         } else {
           // Default fallback
+          console.log('No role detected, redirecting to /app/my-plan');
           router.push('/app/my-plan');
         }
-      }, 200);
+      }, 500); // Increased timeout to ensure roles are loaded
       
       return () => clearTimeout(timer);
     }

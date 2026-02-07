@@ -11,14 +11,14 @@ export function getTenantFromSubdomain(): string | null {
   const host = window.location.host;
   const parts = host.split('.');
 
-  // If we have more than 2 parts (e.g., tenant.localhost:3000 or tenant.example.com)
+  // If we have more than 2 parts (e.g., tenant.localhost:3002 or tenant.example.com)
   // The first part is the subdomain
   if (parts.length > 2) {
     return parts[0];
   }
 
   // For localhost development, check if there's a subdomain pattern
-  // e.g., tenant.localhost:3000
+  // e.g., tenant.localhost:3002
   if (host.includes('localhost') && parts.length > 1) {
     const subdomain = parts[0];
     if (subdomain !== 'localhost' && subdomain !== 'www') {

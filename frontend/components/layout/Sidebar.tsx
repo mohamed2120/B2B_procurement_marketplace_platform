@@ -36,10 +36,14 @@ const supplierNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { name: 'Dashboard', href: '/app/admin/dashboard', icon: '🏠' },
-  { name: 'Company Verification', href: '/app/admin/company-verification', icon: '🏢' },
+  { name: 'Tenants', href: '/app/admin/tenants', icon: '🏢' },
+  { name: 'Users', href: '/app/admin/users', icon: '👥' },
+  { name: 'Roles & Permissions', href: '/app/admin/roles-permissions', icon: '🔐' },
+  { name: 'Company Verification', href: '/app/admin/company-verification', icon: '✅' },
   { name: 'Catalog Approvals', href: '/app/admin/catalog-approvals', icon: '📚' },
   { name: 'Disputes', href: '/app/admin/disputes', icon: '⚖️' },
   { name: 'Subscriptions', href: '/app/admin/subscriptions', icon: '💳' },
+  { name: 'Audit Logs', href: '/app/admin/audit-logs', icon: '📋' },
   { name: 'Diagnostics', href: '/app/admin/diagnostics', icon: '🔧' },
 ];
 

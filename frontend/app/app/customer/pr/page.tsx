@@ -16,10 +16,11 @@ export default function CustomerPR() {
 
   const fetchPRs = async () => {
     try {
-      const response = await apiClients.procurement.get('/api/v1/prs');
-      setPRs(response.data);
+      const response = await apiClients.procurement.get('/api/v1/purchase-requests');
+      setPRs(response.data || []);
     } catch (error) {
       console.error('Failed to fetch PRs:', error);
+      setPRs([]);
     } finally {
       setLoading(false);
     }
@@ -57,7 +58,7 @@ export default function CustomerPR() {
                   </div>
                 </div>
                 <Link href={`/app/customer/pr/${pr.id}`}>
-                  <button className="text-primary-600 hover:text-primary-700">View →</button>
+                  <Button size="sm" variant="secondary">View →</Button>
                 </Link>
               </div>
             </Card>

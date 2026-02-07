@@ -1,0 +1,8 @@
+# Service version tracking
+.service-versions.json
+.frontend-version
+
+# Docker
+*.bak
+*.bak2
+*.bak3

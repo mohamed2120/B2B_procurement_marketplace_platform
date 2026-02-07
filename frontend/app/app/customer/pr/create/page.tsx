@@ -27,7 +27,7 @@ export default function CreatePR() {
     setLoading(true);
 
     try {
-      await apiClients.procurement.post('/api/v1/prs', formData);
+      await apiClients.procurement.post('/api/v1/purchase-requests', formData);
       router.push('/app/customer/pr');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create PR');

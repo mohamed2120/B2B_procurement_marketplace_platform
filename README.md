@@ -42,20 +42,28 @@ We provide convenient start scripts for different platforms:
 
 **For Unix/Mac/Linux:**
 ```bash
-./start.sh
+./start.sh    # Start all services
+./stop.sh     # Stop all services
 ```
 
 **For Windows (PowerShell):**
 ```powershell
-.\start.ps1
+.\start.ps1   # Start all services
+.\stop.ps1    # Stop all services
 ```
 
-These scripts will:
+**Start script will:**
 - Start all infrastructure, backend services, and frontend
 - Run database migrations
 - Seed the database with demo data
 - Check service health
 - Display access information
+
+**Stop script will:**
+- Stop all Docker containers gracefully
+- Stop local frontend dev server if running
+- Free port 3002
+- Clean up resources
 
 ### Manual Start (Alternative)
 
@@ -325,12 +333,40 @@ make test-integration
 
 After seeding, you can use these accounts (all use password: `demo123456`):
 
-- **Platform Admin**: `admin@demo.com` - Full platform access
-- **Requester (Buyer Company)**: `buyer.requester@demo.com` - Can create PRs and RFQs
-- **Procurement Manager (Buyer Company)**: `buyer.procurement@demo.com` - Can approve PRs/POs and award quotes
-- **Supplier**: `supplier@demo.com` - Can manage listings and respond to RFQs
+| Email | Role | Tenant | Access |
+|-------|------|--------|--------|
+| `admin@demo.com` | admin, super_admin | Platform | Full platform access - can manage tenants, users, approvals, subscriptions, disputes, diagnostics |
+| `buyer.requester@demo.com` | requester | Demo Buyer Company | Can create PRs and RFQs, view own items |
+| `buyer.procurement@demo.com` | procurement_manager | Demo Buyer Company | Can approve PRs, compare quotes, award quotes, create POs |
+| `supplier@demo.com` | supplier | Demo Supplier Company | Can manage listings, submit quotes, update shipments |
 
-All accounts use tenant ID: `00000000-0000-0000-0000-000000000001`
+**Expected Routes After Login:**
+
+- **Requester**: Redirects to `/app/customer/dashboard`
+  - Can access: Dashboard, Purchase Requests, RFQs, Orders, Shipments
+  - Can create PRs and RFQs
+  - Can view PR detail at `/app/customer/pr/[id]`
+  - Can view RFQ detail at `/app/customer/rfq/[id]`
+
+- **Procurement Manager**: Redirects to `/app/customer/dashboard`
+  - Can access: Same as requester, plus:
+  - Can approve/reject PRs at `/app/customer/pr/[id]`
+  - Can compare quotes and award at `/app/customer/rfq/[id]`
+
+- **Supplier**: Redirects to `/app/supplier/dashboard`
+  - Can access: Dashboard, RFQ Inbox, My Quotes, Listings, Orders, Shipments
+  - Can submit quotes at `/app/supplier/rfq/[id]`
+  - Can create listings at `/app/supplier/listings/create`
+
+- **Admin**: Redirects to `/app/admin/dashboard`
+  - Can access: All admin pages including:
+  - Tenant Management (`/app/admin/tenants`)
+  - User Management (`/app/admin/users`)
+  - Roles & Permissions (`/app/admin/roles-permissions`)
+  - Audit Logs (`/app/admin/audit-logs`)
+  - Company Verification, Catalog Approvals, Disputes, Subscriptions, Diagnostics
+
+All accounts use tenant ID: `00000000-0000-0000-0000-000000000001` (except admin which uses platform tenant)
 
 ## API Endpoints
 

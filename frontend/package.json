@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "npm run free-port && next dev -p 3002",
+    "dev:safe": "npm run free-port && next dev -p 3002",
+    "free-port": "bash scripts/free-port.sh || true",
+    "free-port:auto": "AUTO_KILL=true bash scripts/free-port.sh || true",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3002",
     "lint": "next lint",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
@@ -14,7 +17,7 @@
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
     "js-cookie": "^3.0.5",
-    "next": "^14.2.5",
+    "next": "^16.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
